@@ -1,0 +1,12 @@
+# Maven generated files
+target/
+
+# NetBeans private files
+nbproject/private/
+
+# Compiled Java files
+*.class
+
+# Operating system files
+.DS_Store
+Thumbs.db
