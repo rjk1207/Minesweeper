@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 
 public class BoardTest {
 
+    // ---------------------------------------------------------
     // Test 1: Board should have 3 rows
+    // ---------------------------------------------------------
     @Test
     public void boardHasThreeRows() {
         Board board = new Board(3, 4, 0);
@@ -14,7 +16,9 @@ public class BoardTest {
     }
 
 
+    // ---------------------------------------------------------
     // Test 2: Board should have 4 columns
+    // ---------------------------------------------------------
     @Test
     public void boardHasFourColumns() {
         Board board = new Board(3, 4, 0);
@@ -23,7 +27,9 @@ public class BoardTest {
     }
 
 
+    // ---------------------------------------------------------
     // Test 3: Cell at (0,0) should not be null
+    // ---------------------------------------------------------
     @Test
     public void firstCellIsNotNull() {
         Board board = new Board(3, 4, 0);
@@ -32,7 +38,9 @@ public class BoardTest {
     }
 
 
+    // ---------------------------------------------------------
     // Test 4: Cell at (2,3) should not be null
+    // ---------------------------------------------------------
     @Test
     public void lastCellIsNotNull() {
         Board board = new Board(3, 4, 0);
@@ -41,7 +49,9 @@ public class BoardTest {
     }
 
 
-    // Test 5: Every cell in a 3x4 board should not be null
+    // ---------------------------------------------------------
+    // Test 5: Every cell should not be null
+    // ---------------------------------------------------------
     @Test
     public void allCellsAreNotNull() {
         Board board = new Board(3, 4, 0);
@@ -54,7 +64,9 @@ public class BoardTest {
     }
 
 
-    // Test 6: Board should store 3 as the number of mines
+    // ---------------------------------------------------------
+    // Test 6: Board should store the correct number of mines
+    // ---------------------------------------------------------
     @Test
     public void boardHasCorrectNumberOfMines() {
         Board board = new Board(3, 4, 3);
@@ -63,7 +75,9 @@ public class BoardTest {
     }
 
 
+    // ---------------------------------------------------------
     // Test 7: Board should actually contain exactly 3 mines
+    // ---------------------------------------------------------
     @Test
     public void boardContainsExactlyThreeMines() {
         Board board = new Board(3, 4, 3);
@@ -83,7 +97,9 @@ public class BoardTest {
     }
 
 
+    // ---------------------------------------------------------
     // Test 8: Board with 0 mines should contain no mines
+    // ---------------------------------------------------------
     @Test
     public void boardContainsZeroMines() {
         Board board = new Board(3, 4, 0);
@@ -103,7 +119,9 @@ public class BoardTest {
     }
 
 
-    // Test 9: A 2x2 board with 4 mines should contain exactly 4 mines
+    // ---------------------------------------------------------
+    // Test 9: A 2x2 board with 4 mines should contain 4 mines
+    // ---------------------------------------------------------
     @Test
     public void fullBoardContainsFourMines() {
         Board board = new Board(2, 2, 4);
@@ -123,12 +141,130 @@ public class BoardTest {
     }
 
 
-    // Test 10: A 3x4 board cannot contain 13 mines
+    // ---------------------------------------------------------
+    // Test 10: Too many mines should throw an exception
+    // ---------------------------------------------------------
     @Test
     public void tooManyMinesThrowsException() {
 
         assertThrows(IllegalArgumentException.class, () -> {
             new Board(3, 4, 13);
         });
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 11: Corner cell (0,0) has correct neighbour mine count
+    // ---------------------------------------------------------
+    @Test
+    public void cornerCellHasCorrectNeighbourMineCount() {
+        Board board = new Board(3, 3, 3);
+
+        int actualMines = 0;
+
+        // The three possible neighbours of (0,0)
+        if (board.getCell(0, 1).isMine()) {
+            actualMines++;
+        }
+
+        if (board.getCell(1, 0).isMine()) {
+            actualMines++;
+        }
+
+        if (board.getCell(1, 1).isMine()) {
+            actualMines++;
+        }
+
+        assertEquals(
+                actualMines,
+                board.getCell(0, 0).getNeighbourMines()
+        );
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 12: Edge cell (0,1) has correct neighbour mine count
+    // ---------------------------------------------------------
+    @Test
+    public void edgeCellHasCorrectNeighbourMineCount() {
+        Board board = new Board(3, 3, 3);
+
+        int actualMines = 0;
+
+        // The five possible neighbours of (0,1)
+        if (board.getCell(0, 0).isMine()) {
+            actualMines++;
+        }
+
+        if (board.getCell(0, 2).isMine()) {
+            actualMines++;
+        }
+
+        if (board.getCell(1, 0).isMine()) {
+            actualMines++;
+        }
+
+        if (board.getCell(1, 1).isMine()) {
+            actualMines++;
+        }
+
+        if (board.getCell(1, 2).isMine()) {
+            actualMines++;
+        }
+
+        assertEquals(
+                actualMines,
+                board.getCell(0, 1).getNeighbourMines()
+        );
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 13: Centre cell (1,1) has correct neighbour mine count
+    // ---------------------------------------------------------
+    @Test
+    public void centreCellHasCorrectNeighbourMineCount() {
+        Board board = new Board(3, 3, 3);
+
+        int actualMines = 0;
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+
+                // Do not count the centre cell itself
+                if (r == 1 && c == 1) {
+                    continue;
+                }
+
+                if (board.getCell(r, c).isMine()) {
+                    actualMines++;
+                }
+            }
+        }
+
+        assertEquals(
+                actualMines,
+                board.getCell(1, 1).getNeighbourMines()
+        );
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 14: Board with no mines should have 0 neighbour mines
+    // for every cell
+    // ---------------------------------------------------------
+    @Test
+    public void boardWithNoMinesHasZeroNeighbourMines() {
+        Board board = new Board(3, 3, 0);
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+
+                assertEquals(
+                        0,
+                        board.getCell(r, c).getNeighbourMines()
+                );
+            }
+        }
     }
 }

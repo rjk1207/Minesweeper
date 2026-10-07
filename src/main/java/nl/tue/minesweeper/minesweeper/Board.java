@@ -29,6 +29,7 @@ public class Board {
         }
 
         placeMines();
+        calculateNeighbourMines();
     }
 
     private void placeMines() {
@@ -39,6 +40,30 @@ public class Board {
             if (!cells[r][c].isMine()) {
                 cells[r][c].setMine(true);
                 placed++;
+            }
+        }
+    }
+
+    public void calculateNeighbourMines() {
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                int count = 0;
+
+                for (int dr = -1; dr <= 1; dr++) {
+                    for (int dc = -1; dc <= 1; dc++) {
+                        if (dr == 0 && dc == 0) {
+                            continue;
+                        }
+                        int nr = r + dr;
+                        int nc = c + dc;
+                        boolean onBoard = nr >= 0 && nr < rows && nc >= 0 && nc < cols;
+                        if (onBoard && cells[nr][nc].isMine()) {
+                            count++;
+                        }
+                    }
+                }
+
+                cells[r][c].setNeighbourMines(count);
             }
         }
     }
