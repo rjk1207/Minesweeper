@@ -8,6 +8,7 @@ public class Board {
     private final int numberOfMines;
     private final Cell[][] cells;
     private final Random random = new Random();
+    private GameStatus status = GameStatus.PLAYING;
 
     public Board(int rows, int cols, int numberOfMines) {
         if (rows < 1 || cols < 1) {
@@ -44,7 +45,7 @@ public class Board {
         }
     }
 
-    public void calculateNeighbourMines() {
+    private void calculateNeighbourMines() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 int count = 0;
@@ -72,17 +73,31 @@ public class Board {
     public int getCols() { return cols; }
     public int getNumberOfMines() { return numberOfMines; }
     public Cell getCell(int r, int c) { return cells[r][c]; }
+    public GameStatus getStatus() { return status; }
 
     public void revealCell(int row, int col) {
+        if (status != GameStatus.PLAYING) {
+            return;
+        }
+
         Cell cell = cells[row][col];
 
-        if (cell.getState() == Cell.State.COVERED) {
-            cell.setState(Cell.State.UNCOVERED);
-
-            if (!cell.isMine() && cell.getNeighbourMines() == 0) {
-                floodFill(row, col);
-            }
+        if (cell.getState() != Cell.State.COVERED) {
+            return;
         }
+
+        cell.setState(Cell.State.UNCOVERED);
+
+        if (cell.isMine()) {
+            status = GameStatus.LOST;
+            return;
+        }
+
+        if (cell.getNeighbourMines() == 0) {
+            floodFill(row, col);
+        }
+
+        checkWin();
     }
 
     private void floodFill(int row, int col) {
@@ -113,5 +128,17 @@ public class Board {
                 }
             }
         }
+    }
+
+    private void checkWin() {
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                Cell cell = cells[r][c];
+                if (!cell.isMine() && cell.getState() != Cell.State.UNCOVERED) {
+                    return;
+                }
+            }
+        }
+        status = GameStatus.WON;
     }
 }
