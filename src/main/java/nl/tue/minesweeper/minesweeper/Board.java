@@ -72,4 +72,11 @@ public class Board {
     public int getCols() { return cols; }
     public int getNumberOfMines() { return numberOfMines; }
     public Cell getCell(int r, int c) { return cells[r][c]; }
+    
+    public void revealCell(int row, int col) {
+        Cell cell = cells[row][col];
+        if (cell.getState() == Cell.State.COVERED) {
+            cell.setState(Cell.State.UNCOVERED);
+        }
+    }
 }
