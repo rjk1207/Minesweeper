@@ -65,7 +65,7 @@ public class BoardTest {
 
 
     // ---------------------------------------------------------
-    // Test 6: Board should store the correct number of mines
+    // Test 6: Board should store correct number of mines
     // ---------------------------------------------------------
     @Test
     public void boardHasCorrectNumberOfMines() {
@@ -86,7 +86,6 @@ public class BoardTest {
 
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 4; c++) {
-
                 if (board.getCell(r, c).isMine()) {
                     mineCount++;
                 }
@@ -108,7 +107,6 @@ public class BoardTest {
 
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 4; c++) {
-
                 if (board.getCell(r, c).isMine()) {
                     mineCount++;
                 }
@@ -130,7 +128,6 @@ public class BoardTest {
 
         for (int r = 0; r < 2; r++) {
             for (int c = 0; c < 2; c++) {
-
                 if (board.getCell(r, c).isMine()) {
                     mineCount++;
                 }
@@ -142,11 +139,10 @@ public class BoardTest {
 
 
     // ---------------------------------------------------------
-    // Test 10: Too many mines should throw an exception
+    // Test 10: Too many mines should throw exception
     // ---------------------------------------------------------
     @Test
     public void tooManyMinesThrowsException() {
-
         assertThrows(IllegalArgumentException.class, () -> {
             new Board(3, 4, 13);
         });
@@ -154,7 +150,7 @@ public class BoardTest {
 
 
     // ---------------------------------------------------------
-    // Test 11: Corner cell (0,0) has correct neighbour mine count
+    // Test 11: Corner cell neighbour mine count
     // ---------------------------------------------------------
     @Test
     public void cornerCellHasCorrectNeighbourMineCount() {
@@ -162,7 +158,6 @@ public class BoardTest {
 
         int actualMines = 0;
 
-        // The three possible neighbours of (0,0)
         if (board.getCell(0, 1).isMine()) {
             actualMines++;
         }
@@ -183,7 +178,7 @@ public class BoardTest {
 
 
     // ---------------------------------------------------------
-    // Test 12: Edge cell (0,1) has correct neighbour mine count
+    // Test 12: Edge cell neighbour mine count
     // ---------------------------------------------------------
     @Test
     public void edgeCellHasCorrectNeighbourMineCount() {
@@ -191,7 +186,6 @@ public class BoardTest {
 
         int actualMines = 0;
 
-        // The five possible neighbours of (0,1)
         if (board.getCell(0, 0).isMine()) {
             actualMines++;
         }
@@ -220,7 +214,7 @@ public class BoardTest {
 
 
     // ---------------------------------------------------------
-    // Test 13: Centre cell (1,1) has correct neighbour mine count
+    // Test 13: Centre cell neighbour mine count
     // ---------------------------------------------------------
     @Test
     public void centreCellHasCorrectNeighbourMineCount() {
@@ -231,7 +225,6 @@ public class BoardTest {
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
 
-                // Do not count the centre cell itself
                 if (r == 1 && c == 1) {
                     continue;
                 }
@@ -250,8 +243,7 @@ public class BoardTest {
 
 
     // ---------------------------------------------------------
-    // Test 14: Board with no mines should have 0 neighbour mines
-    // for every cell
+    // Test 14: Zero-mine board should have zero neighbour mines
     // ---------------------------------------------------------
     @Test
     public void boardWithNoMinesHasZeroNeighbourMines() {
@@ -259,10 +251,216 @@ public class BoardTest {
 
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
-
                 assertEquals(
                         0,
                         board.getCell(r, c).getNeighbourMines()
+                );
+            }
+        }
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 15: Revealing a covered cell should uncover it
+    // ---------------------------------------------------------
+    @Test
+    public void revealCellMakesCellUncovered() {
+        Board board = new Board(3, 3, 0);
+
+        board.revealCell(1, 1);
+
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(1, 1).getState()
+        );
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 16: Flagged cell should not be revealed
+    // ---------------------------------------------------------
+    @Test
+    public void flaggedCellCannotBeRevealed() {
+        Board board = new Board(3, 3, 0);
+
+        board.getCell(1, 1).setState(Cell.State.FLAGGED);
+
+        board.revealCell(1, 1);
+
+        assertEquals(
+                Cell.State.FLAGGED,
+                board.getCell(1, 1).getState()
+        );
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 17: Revealed cell should be uncovered
+    //
+    // NOTE:
+    // With flood fill, other zero-mine cells may also be uncovered.
+    // ---------------------------------------------------------
+    @Test
+    public void selectedCellIsUncovered() {
+        Board board = new Board(3, 3, 0);
+
+        board.revealCell(1, 1);
+
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(1, 1).getState()
+        );
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 18: Revealing same cell twice should be safe
+    // ---------------------------------------------------------
+    @Test
+    public void revealSameCellTwice() {
+        Board board = new Board(3, 3, 0);
+
+        board.revealCell(1, 1);
+        board.revealCell(1, 1);
+
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(1, 1).getState()
+        );
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 19: Revealing centre of empty 3x3 board should
+    // uncover every cell
+    // ---------------------------------------------------------
+    @Test
+    public void floodFillFromCentreRevealsAllCells() {
+        Board board = new Board(3, 3, 0);
+
+        board.revealCell(1, 1);
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                assertEquals(
+                        Cell.State.UNCOVERED,
+                        board.getCell(r, c).getState()
+                );
+            }
+        }
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 20: Flood fill should also work from a corner
+    // ---------------------------------------------------------
+    @Test
+    public void floodFillFromCornerRevealsAllCells() {
+        Board board = new Board(3, 3, 0);
+
+        board.revealCell(0, 0);
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                assertEquals(
+                        Cell.State.UNCOVERED,
+                        board.getCell(r, c).getState()
+                );
+            }
+        }
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 21: Flood fill should not uncover a flagged cell
+    // ---------------------------------------------------------
+    @Test
+    public void floodFillDoesNotRevealFlaggedCell() {
+        Board board = new Board(3, 3, 0);
+
+        board.getCell(2, 2).setState(Cell.State.FLAGGED);
+
+        board.revealCell(0, 0);
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+
+                if (r == 2 && c == 2) {
+                    assertEquals(
+                            Cell.State.FLAGGED,
+                            board.getCell(r, c).getState()
+                    );
+                } else {
+                    assertEquals(
+                            Cell.State.UNCOVERED,
+                            board.getCell(r, c).getState()
+                    );
+                }
+            }
+        }
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 22: Flood fill on a 1x1 board should work
+    // without going outside board boundaries
+    // ---------------------------------------------------------
+    @Test
+    public void revealSingleCellBoard() {
+        Board board = new Board(1, 1, 0);
+
+        board.revealCell(0, 0);
+
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(0, 0).getState()
+        );
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 23: Flood fill should continue recursively through
+    // the entire 4x4 board
+    // ---------------------------------------------------------
+    @Test
+    public void floodFillRevealsEntireFourByFourBoard() {
+        Board board = new Board(4, 4, 0);
+
+        board.revealCell(0, 0);
+
+        int uncoveredCount = 0;
+
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+
+                if (board.getCell(r, c).getState()
+                        == Cell.State.UNCOVERED) {
+
+                    uncoveredCount++;
+                }
+            }
+        }
+
+        assertEquals(16, uncoveredCount);
+    }
+
+
+    // ---------------------------------------------------------
+    // Test 24: Revealing an already flood-filled cell again
+    // should be safe
+    // ---------------------------------------------------------
+    @Test
+    public void revealAfterFloodFillDoesNothingWrong() {
+        Board board = new Board(3, 3, 0);
+
+        board.revealCell(1, 1);
+        board.revealCell(1, 1);
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                assertEquals(
+                        Cell.State.UNCOVERED,
+                        board.getCell(r, c).getState()
                 );
             }
         }

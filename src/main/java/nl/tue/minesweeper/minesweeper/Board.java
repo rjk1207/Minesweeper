@@ -72,11 +72,46 @@ public class Board {
     public int getCols() { return cols; }
     public int getNumberOfMines() { return numberOfMines; }
     public Cell getCell(int r, int c) { return cells[r][c]; }
-    
+
     public void revealCell(int row, int col) {
         Cell cell = cells[row][col];
+
         if (cell.getState() == Cell.State.COVERED) {
             cell.setState(Cell.State.UNCOVERED);
+
+            if (!cell.isMine() && cell.getNeighbourMines() == 0) {
+                floodFill(row, col);
+            }
+        }
+    }
+
+    private void floodFill(int row, int col) {
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+                if (dr == 0 && dc == 0) {
+                    continue;
+                }
+
+                int nr = row + dr;
+                int nc = col + dc;
+
+                boolean onBoard = nr >= 0 && nr < rows && nc >= 0 && nc < cols;
+                if (!onBoard) {
+                    continue;
+                }
+
+                Cell neighbour = cells[nr][nc];
+
+                if (neighbour.isMine() || neighbour.getState() != Cell.State.COVERED) {
+                    continue;
+                }
+
+                neighbour.setState(Cell.State.UNCOVERED);
+
+                if (neighbour.getNeighbourMines() == 0) {
+                    floodFill(nr, nc);
+                }
+            }
         }
     }
 }
