@@ -9,13 +9,14 @@ public class Board {
     private final Cell[][] cells;
     private final Random random = new Random();
     private GameStatus status = GameStatus.PLAYING;
+    private boolean minesPlaced = false;
 
     public Board(int rows, int cols, int numberOfMines) {
         if (rows < 1 || cols < 1) {
             throw new IllegalArgumentException("Board must have at least 1 row and 1 column");
         }
-        if (numberOfMines < 0 || numberOfMines > rows * cols) {
-            throw new IllegalArgumentException("Mines must be between 0 and rows * cols");
+        if (numberOfMines < 0 || numberOfMines > rows * cols - 1) {
+            throw new IllegalArgumentException("Mines must be between 0 and rows * cols - 1");
         }
 
         this.rows = rows;
@@ -28,24 +29,22 @@ public class Board {
                 cells[r][c] = new Cell();
             }
         }
-
-        placeMines();
-        calculateNeighbourMines();
     }
 
-    private void placeMines() {
+    private void placeMines(int safeRow, int safeCol) {
         int placed = 0;
         while (placed < numberOfMines) {
             int r = random.nextInt(rows);
             int c = random.nextInt(cols);
-            if (!cells[r][c].isMine()) {
+            boolean isSafeCell = (r == safeRow && c == safeCol);
+            if (!isSafeCell && !cells[r][c].isMine()) {
                 cells[r][c].setMine(true);
                 placed++;
             }
         }
     }
 
-    private void calculateNeighbourMines() {
+    public void calculateNeighbourMines() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 int count = 0;
@@ -84,6 +83,12 @@ public class Board {
 
         if (cell.getState() != Cell.State.COVERED) {
             return;
+        }
+
+        if (!minesPlaced) {
+            placeMines(row, col);
+            calculateNeighbourMines();
+            minesPlaced = true;
         }
 
         cell.setState(Cell.State.UNCOVERED);
