@@ -48,6 +48,28 @@ public class BoardTest {
         return count;
     }
 
+    private int countMinesInScanArea(Board board, int row, int col) {
+        int count = 0;
+
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+
+                int nr = row + dr;
+                int nc = col + dc;
+
+                if (nr >= 0 && nr < board.getRows()
+                        && nc >= 0 && nc < board.getCols()) {
+
+                    if (board.getCell(nr, nc).isMine()) {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
+
     private int[] findMine(Board board) {
         for (int r = 0; r < board.getRows(); r++) {
             for (int c = 0; c < board.getCols(); c++) {
@@ -1161,7 +1183,6 @@ public class BoardTest {
     // =========================================================
 
     // Test 53
-    // Shield is initially inactive
     @Test
     public void shieldInitiallyInactive() {
         Board board = new Board(3, 3, 2);
@@ -1170,7 +1191,6 @@ public class BoardTest {
     }
 
     // Test 54
-    // Activating shield makes it active
     @Test
     public void activateShieldMakesShieldActive() {
         Board board = new Board(3, 3, 2);
@@ -1181,7 +1201,6 @@ public class BoardTest {
     }
 
     // Test 55
-    // Repeated activation must not stack protection
     @Test
     public void repeatedShieldActivationDoesNotStack() {
         Board board = new Board(3, 3, 7);
@@ -1204,7 +1223,6 @@ public class BoardTest {
     }
 
     // Test 56
-    // Revealing a safe cell consumes the shield
     @Test
     public void shieldExpiresAfterSafeReveal() {
         Board board = new Board(3, 3, 7);
@@ -1228,7 +1246,6 @@ public class BoardTest {
     }
 
     // Test 57
-    // Shield protects against revealing a mine
     @Test
     public void shieldPreventsMineRevealAndExpires() {
         Board board = new Board(3, 3, 7);
@@ -1257,7 +1274,6 @@ public class BoardTest {
     }
 
     // Test 58
-    // Revealing a mine without shield loses the game
     @Test
     public void mineWithoutShieldLosesGame() {
         Board board = new Board(3, 3, 7);
@@ -1278,7 +1294,6 @@ public class BoardTest {
     }
 
     // Test 59
-    // Attempting to reveal a flagged cell preserves shield
     @Test
     public void shieldRemainsAfterFlaggedRevealAttempt() {
         Board board = new Board(3, 3, 7);
@@ -1305,7 +1320,6 @@ public class BoardTest {
     }
 
     // Test 60
-    // Attempting to reveal an uncovered cell preserves shield
     @Test
     public void shieldRemainsAfterUncoveredRevealAttempt() {
         Board board = new Board(3, 3, 7);
@@ -1325,7 +1339,6 @@ public class BoardTest {
     }
 
     // Test 61
-    // Invalid chord must not consume shield
     @Test
     public void shieldRemainsAfterInvalidChord() {
         Board board = new Board(3, 3, 7);
@@ -1334,7 +1347,6 @@ public class BoardTest {
 
         board.activateShield();
 
-        // Centre needs 7 flags, but none are placed.
         board.chordCell(1, 1);
 
         assertTrue(board.isShieldActive());
@@ -1346,15 +1358,12 @@ public class BoardTest {
     }
 
     // Test 62
-    // Chording with no covered neighbours preserves shield
     @Test
     public void shieldRemainsWhenChordHasNoCoveredNeighbours() {
         Board board = new Board(3, 3, 7);
 
         board.revealCell(1, 1);
 
-        // Flag every neighbouring cell, including the
-        // one remaining safe cell.
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
                 if (r == 1 && c == 1) {
@@ -1393,7 +1402,6 @@ public class BoardTest {
     }
 
     // Test 63
-    // A valid chord consumes shield after the whole action
     @Test
     public void shieldExpiresAfterValidChord() {
         Board board = new Board(3, 3, 7);
@@ -1404,7 +1412,6 @@ public class BoardTest {
 
         assertNotNull(safe);
 
-        // Correctly flag all mines.
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
                 if (board.getCell(r, c).isMine()) {
@@ -1435,7 +1442,6 @@ public class BoardTest {
     }
 
     // Test 64
-    // Shield protects against mines encountered during chord
     @Test
     public void shieldProtectsMinesDuringChord() {
         Board board = new Board(3, 3, 7);
@@ -1446,12 +1452,10 @@ public class BoardTest {
 
         assertNotNull(safe);
 
-        // Incorrectly flag the safe cell.
         board.getCell(safe[0], safe[1]).setState(
                 Cell.State.FLAGGED
         );
 
-        // Flag six of the seven actual mines.
         int mineFlags = 0;
 
         for (int r = 0; r < 3 && mineFlags < 6; r++) {
@@ -1467,7 +1471,6 @@ public class BoardTest {
 
         assertEquals(6, mineFlags);
 
-        // Find the unflagged mine.
         int[] unflaggedMine = null;
 
         for (int r = 0; r < 3; r++) {
@@ -1503,11 +1506,9 @@ public class BoardTest {
     }
 
     // Test 65
-    // Shield cannot be activated after winning or losing
     @Test
     public void shieldCannotActivateAfterGameEnds() {
 
-        // First check a won game.
         Board wonBoard = new Board(3, 3, 8);
 
         wonBoard.revealCell(1, 1);
@@ -1521,7 +1522,6 @@ public class BoardTest {
 
         assertFalse(wonBoard.isShieldActive());
 
-        // Now check a lost game.
         Board lostBoard = new Board(3, 3, 7);
 
         lostBoard.revealCell(1, 1);
@@ -1543,7 +1543,6 @@ public class BoardTest {
     }
 
     // Test 66
-    // Hint revealing a cell consumes the shield
     @Test
     public void shieldExpiresAfterHintRevealsCell() {
         Board board = new Board(3, 3, 7);
@@ -1577,5 +1576,256 @@ public class BoardTest {
                 board.getStatus()
         );
     }
-}
 
+    // =========================================================
+    // TESTS 67-76: SCAN SYSTEM
+    // =========================================================
+
+    // Test 67
+    // Scan area containing no mines returns zero
+    @Test
+    public void scanAreaWithNoMinesReturnsZero() {
+        Board board = new Board(5, 5, 1);
+
+        board.revealCell(2, 2);
+
+        // Find a 3x3 area that contains no mines.
+        int[] emptyArea = null;
+
+        for (int r = 0; r < 5 && emptyArea == null; r++) {
+            for (int c = 0; c < 5 && emptyArea == null; c++) {
+                if (countMinesInScanArea(board, r, c) == 0) {
+                    emptyArea = new int[]{r, c};
+                }
+            }
+        }
+
+        assertNotNull(emptyArea);
+
+        assertEquals(
+                0,
+                board.scanArea(emptyArea[0], emptyArea[1])
+        );
+    }
+
+    // Test 68
+    // Scan area containing multiple mines returns correct count
+    @Test
+    public void scanAreaWithMultipleMinesReturnsCorrectCount() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        assertEquals(
+                7,
+                board.scanArea(1, 1)
+        );
+    }
+
+    // Test 69
+    // Corner scan counts only valid board positions
+    @Test
+    public void scanCornerCountsOnlyValidPositions() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        int expected = countMinesInScanArea(board, 0, 0);
+
+        assertEquals(
+                expected,
+                board.scanArea(0, 0)
+        );
+    }
+
+    // Test 70
+    // Edge scan counts only valid board positions
+    @Test
+    public void scanEdgeCountsOnlyValidPositions() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        int expected = countMinesInScanArea(board, 0, 1);
+
+        assertEquals(
+                expected,
+                board.scanArea(0, 1)
+        );
+    }
+
+    // Test 71
+    // Centre scan checks all nine positions
+    @Test
+    public void scanCentreChecksAllNinePositions() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        int expected = countMinesInScanArea(board, 1, 1);
+
+        assertEquals(7, expected);
+
+        assertEquals(
+                expected,
+                board.scanArea(1, 1)
+        );
+    }
+
+    // Test 72
+    // Flagged mines are still counted during scanning
+    @Test
+    public void scanCountsFlaggedMines() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        int flaggedMines = 0;
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                if (board.getCell(r, c).isMine()) {
+                    board.getCell(r, c).setState(
+                            Cell.State.FLAGGED
+                    );
+                    flaggedMines++;
+                }
+            }
+        }
+
+        assertEquals(7, flaggedMines);
+
+        assertEquals(
+                7,
+                board.scanArea(1, 1)
+        );
+    }
+
+    // Test 73
+    // Scanning must not consume an active shield
+    @Test
+    public void scanDoesNotConsumeShield() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        board.activateShield();
+
+        assertTrue(board.isShieldActive());
+
+        board.scanArea(1, 1);
+
+        assertTrue(board.isShieldActive());
+
+        assertEquals(
+                GameStatus.PLAYING,
+                board.getStatus()
+        );
+    }
+
+    // Test 74
+    // Scanning must not reveal or change any cell
+    @Test
+    public void scanDoesNotChangeCellStates() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        Cell.State[][] before = snapshot(board);
+
+        int expected = countMinesInScanArea(board, 1, 1);
+
+        assertEquals(
+                expected,
+                board.scanArea(1, 1)
+        );
+
+        assertSnapshot(board, before);
+
+        assertEquals(
+                GameStatus.PLAYING,
+                board.getStatus()
+        );
+    }
+
+    // Test 75
+    // Scanning before mines are initialized returns -1
+    @Test
+    public void scanBeforeFirstRevealReturnsMinusOne() {
+        Board board = new Board(3, 3, 2);
+
+        assertEquals(0, countMines(board));
+
+        assertEquals(
+                -1,
+                board.scanArea(1, 1)
+        );
+
+        assertEquals(0, countMines(board));
+
+        assertEquals(
+                GameStatus.PLAYING,
+                board.getStatus()
+        );
+    }
+
+    // Test 76
+    // Scanning after winning or losing returns -1
+    @Test
+    public void scanAfterGameEndsReturnsMinusOne() {
+
+        // Check scanning after winning.
+        Board wonBoard = new Board(3, 3, 8);
+
+        wonBoard.revealCell(1, 1);
+
+        assertEquals(
+                GameStatus.WON,
+                wonBoard.getStatus()
+        );
+
+        Cell.State[][] wonBefore = snapshot(wonBoard);
+
+        assertEquals(
+                -1,
+                wonBoard.scanArea(1, 1)
+        );
+
+        assertSnapshot(wonBoard, wonBefore);
+
+        assertEquals(
+                GameStatus.WON,
+                wonBoard.getStatus()
+        );
+
+        // Check scanning after losing.
+        Board lostBoard = new Board(3, 3, 7);
+
+        lostBoard.revealCell(1, 1);
+
+        int[] mine = findMine(lostBoard);
+
+        assertNotNull(mine);
+
+        lostBoard.revealCell(mine[0], mine[1]);
+
+        assertEquals(
+                GameStatus.LOST,
+                lostBoard.getStatus()
+        );
+
+        Cell.State[][] lostBefore = snapshot(lostBoard);
+
+        assertEquals(
+                -1,
+                lostBoard.scanArea(1, 1)
+        );
+
+        assertSnapshot(lostBoard, lostBefore);
+
+        assertEquals(
+                GameStatus.LOST,
+                lostBoard.getStatus()
+        );
+    }
+}
