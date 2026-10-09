@@ -10,6 +10,7 @@ public class Board {
     private final Random random = new Random();
     private GameStatus status = GameStatus.PLAYING;
     private boolean minesPlaced = false;
+    private boolean shieldActive = false;
 
     public Board(int rows, int cols, int numberOfMines) {
         if (rows < 1 || cols < 1) {
@@ -73,6 +74,13 @@ public class Board {
     public int getNumberOfMines() { return numberOfMines; }
     public Cell getCell(int r, int c) { return cells[r][c]; }
     public GameStatus getStatus() { return status; }
+    public boolean isShieldActive() { return shieldActive; }
+
+    public void activateShield() {
+        if (status == GameStatus.PLAYING) {
+            shieldActive = true;
+        }
+    }
 
     public void revealCell(int row, int col) {
         if (status != GameStatus.PLAYING) {
@@ -91,18 +99,36 @@ public class Board {
             minesPlaced = true;
         }
 
-        cell.setState(Cell.State.UNCOVERED);
+        revealInternal(row, col);
+
+        shieldActive = false;
+
+        if (status == GameStatus.PLAYING) {
+            checkWin();
+        }
+    }
+
+    private void revealInternal(int row, int col) {
+        Cell cell = cells[row][col];
+
+        if (cell.getState() != Cell.State.COVERED) {
+            return;
+        }
 
         if (cell.isMine()) {
+            if (shieldActive) {
+                return;
+            }
+            cell.setState(Cell.State.UNCOVERED);
             status = GameStatus.LOST;
             return;
         }
 
+        cell.setState(Cell.State.UNCOVERED);
+
         if (cell.getNeighbourMines() == 0) {
             floodFill(row, col);
         }
-
-        checkWin();
     }
 
     private void floodFill(int row, int col) {
@@ -146,10 +172,10 @@ public class Board {
         }
         status = GameStatus.WON;
     }
-    
+
     public void chordCell(int row, int col) {
         if (status != GameStatus.PLAYING) {
-            return;  
+            return;
         }
         if (cells[row][col].getState() != Cell.State.UNCOVERED) {
             return;
@@ -172,39 +198,48 @@ public class Board {
                 }
 
                 Cell neighbour = cells[nr][nc];
-                
+
                 if (neighbour.getState() == Cell.State.FLAGGED) {
                     count++;
                 }
             }
         }
-        if (count == cells[row][col].getNeighbourMines()) {
-            for (int dr = -1; dr <= 1; dr++) {
-                for (int dc = -1; dc <= 1; dc++) {
-                    if (dr == 0 && dc == 0) {
-                        continue;
-                    }
-                    int nr = row + dr;
-                    int nc = col + dc;
-                    
-                    boolean onBoard = nr >= 0 && nr < rows && nc >= 0 && nc < cols;
-                    if (!onBoard) {
-                        continue;
-                    }
-                    
-                    Cell neighbour = cells[nr][nc];
-                    
-                    if (neighbour.getState() == Cell.State.COVERED) {
-                        revealCell(nr,nc);
-                    }
-                    if (status != GameStatus.PLAYING) {
-                        return;
-                    }
+        if (count != cells[row][col].getNeighbourMines()) {
+            return;
+        }
+
+        boolean attemptedReveal = false;
+
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+                if (dr == 0 && dc == 0) {
+                    continue;
+                }
+                int nr = row + dr;
+                int nc = col + dc;
+
+                boolean onBoard = nr >= 0 && nr < rows && nc >= 0 && nc < cols;
+                if (!onBoard) {
+                    continue;
+                }
+
+                if (cells[nr][nc].getState() == Cell.State.COVERED) {
+                    attemptedReveal = true;
+                    revealInternal(nr, nc);
+                }
+                if (status != GameStatus.PLAYING) {
+                    shieldActive = false;
+                    return;
                 }
             }
         }
+
+        if (attemptedReveal) {
+            shieldActive = false;
+            checkWin();
+        }
     }
-    
+
     public void useHint() {
         if (status != GameStatus.PLAYING) {
             return;
