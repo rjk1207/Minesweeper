@@ -1,4 +1,3 @@
-
 package nl.tue.minesweeper.minesweeper;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,7 +37,6 @@ public class BoardTest {
 
                 if (nr >= 0 && nr < board.getRows()
                         && nc >= 0 && nc < board.getCols()) {
-
                     if (board.getCell(nr, nc).isMine()) {
                         count++;
                     }
@@ -390,7 +388,6 @@ public class BoardTest {
 
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {
-
                 if (board.getCell(r, c).getState()
                         == Cell.State.UNCOVERED) {
                     uncoveredCount++;
@@ -649,7 +646,6 @@ public class BoardTest {
     // =========================================================
 
     // Test 37
-    // Chording a covered cell does nothing
     @Test
     public void chordCoveredCellDoesNothing() {
         Board board = new Board(3, 3, 2);
@@ -662,15 +658,10 @@ public class BoardTest {
         );
 
         assertEquals(0, countMines(board));
-
-        assertEquals(
-                GameStatus.PLAYING,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.PLAYING, board.getStatus());
     }
 
     // Test 38
-    // Chording a flagged cell does nothing
     @Test
     public void chordFlaggedCellDoesNothing() {
         Board board = new Board(3, 3, 2);
@@ -685,15 +676,10 @@ public class BoardTest {
         );
 
         assertEquals(0, countMines(board));
-
-        assertEquals(
-                GameStatus.PLAYING,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.PLAYING, board.getStatus());
     }
 
     // Test 39
-    // Chording a zero-numbered cell changes nothing
     @Test
     public void chordZeroNumberedCellDoesNothing() {
         Board board = new Board(3, 3, 0);
@@ -708,33 +694,25 @@ public class BoardTest {
         board.chordCell(0, 0);
 
         assertAllUncovered(board);
-
-        assertEquals(
-                GameStatus.WON,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.WON, board.getStatus());
     }
 
     // Test 40
-    // Too few flags must not reveal additional cells
     @Test
     public void chordWithTooFewFlagsDoesNothing() {
         Board board = new Board(3, 3, 7);
 
         board.revealCell(1, 1);
 
-        // Centre has exactly 7 neighbouring mines.
         assertEquals(
                 7,
                 board.getCell(1, 1).getNeighbourMines()
         );
 
-        // Flag only 6 actual mines.
         int flags = 0;
 
         for (int r = 0; r < 3 && flags < 6; r++) {
             for (int c = 0; c < 3 && flags < 6; c++) {
-
                 if (board.getCell(r, c).isMine()) {
                     board.getCell(r, c).setState(
                             Cell.State.FLAGGED
@@ -757,20 +735,15 @@ public class BoardTest {
 
         board.chordCell(1, 1);
 
-        // Chording should not reveal the safe neighbour.
         assertEquals(
                 Cell.State.COVERED,
                 board.getCell(safe[0], safe[1]).getState()
         );
 
-        assertEquals(
-                GameStatus.PLAYING,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.PLAYING, board.getStatus());
     }
 
     // Test 41
-    // Too many flags must not reveal additional cells
     @Test
     public void chordWithTooManyFlagsDoesNothing() {
         Board board = new Board(3, 3, 7);
@@ -782,12 +755,10 @@ public class BoardTest {
                 board.getCell(1, 1).getNeighbourMines()
         );
 
-        // Flag all 8 neighbours, including the safe cell.
         int flags = 0;
 
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
-
                 if (r == 1 && c == 1) {
                     continue;
                 }
@@ -803,10 +774,8 @@ public class BoardTest {
 
         board.chordCell(1, 1);
 
-        // Every neighbour must remain flagged.
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
-
                 if (r == 1 && c == 1) {
                     continue;
                 }
@@ -818,14 +787,10 @@ public class BoardTest {
             }
         }
 
-        assertEquals(
-                GameStatus.PLAYING,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.PLAYING, board.getStatus());
     }
 
     // Test 42
-    // Correct flags reveal remaining safe neighbours
     @Test
     public void chordWithCorrectFlagsRevealsNeighbours() {
         Board board = new Board(3, 3, 7);
@@ -837,7 +802,6 @@ public class BoardTest {
                 board.getCell(1, 1).getNeighbourMines()
         );
 
-        // Find the second safe cell.
         int[] safe = findOtherSafeCell(board, 1, 1);
 
         assertNotNull(safe);
@@ -847,12 +811,10 @@ public class BoardTest {
                 board.getCell(safe[0], safe[1]).getState()
         );
 
-        // Flag all 7 actual mines.
         int flags = 0;
 
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
-
                 if (board.getCell(r, c).isMine()) {
                     board.getCell(r, c).setState(
                             Cell.State.FLAGGED
@@ -866,20 +828,15 @@ public class BoardTest {
 
         board.chordCell(1, 1);
 
-        // The remaining safe cell must be revealed.
         assertEquals(
                 Cell.State.UNCOVERED,
                 board.getCell(safe[0], safe[1]).getState()
         );
 
-        assertEquals(
-                GameStatus.WON,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.WON, board.getStatus());
     }
 
     // Test 43
-    // Incorrect flags cause chording to reveal a mine
     @Test
     public void chordWithIncorrectFlagsLosesGame() {
         Board board = new Board(3, 3, 7);
@@ -891,22 +848,18 @@ public class BoardTest {
                 board.getCell(1, 1).getNeighbourMines()
         );
 
-        // Find the only other safe cell.
         int[] safe = findOtherSafeCell(board, 1, 1);
 
         assertNotNull(safe);
 
-        // Incorrectly flag the safe cell.
         board.getCell(safe[0], safe[1]).setState(
                 Cell.State.FLAGGED
         );
 
-        // Flag only 6 of the 7 actual mines.
         int mineFlags = 0;
 
         for (int r = 0; r < 3 && mineFlags < 6; r++) {
             for (int c = 0; c < 3 && mineFlags < 6; c++) {
-
                 if (board.getCell(r, c).isMine()) {
                     board.getCell(r, c).setState(
                             Cell.State.FLAGGED
@@ -918,14 +871,10 @@ public class BoardTest {
 
         assertEquals(6, mineFlags);
 
-        // Total flags = 6 mines + 1 safe cell = 7.
-        // This matches the centre cell's number,
-        // but one actual mine is still unflagged.
         int[] unflaggedMine = null;
 
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
-
                 if (board.getCell(r, c).isMine()
                         && board.getCell(r, c).getState()
                         == Cell.State.COVERED) {
@@ -938,10 +887,7 @@ public class BoardTest {
 
         board.chordCell(1, 1);
 
-        assertEquals(
-                GameStatus.LOST,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.LOST, board.getStatus());
 
         assertEquals(
                 Cell.State.UNCOVERED,
@@ -953,29 +899,20 @@ public class BoardTest {
     }
 
     // Test 44
-    // Chording after the game ends does nothing
     @Test
     public void chordAfterGameEndedDoesNothing() {
         Board board = new Board(3, 3, 8);
 
         board.revealCell(1, 1);
 
-        assertEquals(
-                GameStatus.WON,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.WON, board.getStatus());
 
         board.chordCell(1, 1);
 
-        assertEquals(
-                GameStatus.WON,
-                board.getStatus()
-        );
+        assertEquals(GameStatus.WON, board.getStatus());
 
-        // Every mine should still be covered.
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
-
                 if (board.getCell(r, c).isMine()) {
                     assertEquals(
                             Cell.State.COVERED,
@@ -984,5 +921,270 @@ public class BoardTest {
                 }
             }
         }
+    }
+
+    // =========================================================
+    // TESTS 45-52: HINT SYSTEM
+    // =========================================================
+
+    // Test 45
+    // First hint places mines and uncovers a safe cell
+    @Test
+    public void firstHintInitializesMines() {
+        Board board = new Board(3, 3, 2);
+
+        assertEquals(0, countMines(board));
+
+        board.useHint();
+
+        assertEquals(2, countMines(board));
+
+        int uncoveredSafeCells = 0;
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                Cell cell = board.getCell(r, c);
+
+                if (!cell.isMine()
+                        && cell.getState() == Cell.State.UNCOVERED) {
+                    uncoveredSafeCells++;
+                }
+            }
+        }
+
+        assertTrue(uncoveredSafeCells >= 1);
+        assertNotEquals(GameStatus.LOST, board.getStatus());
+    }
+
+    // Test 46
+    // Hint must never uncover a mine
+    @Test
+    public void hintAlwaysSelectsSafeCell() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(0, 0);
+
+        board.useHint();
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                Cell cell = board.getCell(r, c);
+
+                if (cell.isMine()) {
+                    assertNotEquals(
+                            Cell.State.UNCOVERED,
+                            cell.getState()
+                    );
+                }
+            }
+        }
+
+        assertNotEquals(GameStatus.LOST, board.getStatus());
+    }
+
+    // Test 47
+    // Hint must not uncover a flagged safe cell
+    @Test
+    public void hintDoesNotRevealFlaggedCell() {
+        Board board = new Board(3, 3, 6);
+
+        board.revealCell(1, 1);
+
+        int[] safeCell = findOtherSafeCell(board, 1, 1);
+
+        assertNotNull(safeCell);
+
+        board.getCell(safeCell[0], safeCell[1])
+                .setState(Cell.State.FLAGGED);
+
+        board.useHint();
+
+        assertEquals(
+                Cell.State.FLAGGED,
+                board.getCell(safeCell[0], safeCell[1]).getState()
+        );
+    }
+
+    // Test 48
+    // Hint must choose a covered cell rather than an uncovered one
+    @Test
+    public void hintDoesNotSelectAlreadyUncoveredCell() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(0, 0);
+
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(0, 0).getState()
+        );
+
+        board.useHint();
+
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(0, 0).getState()
+        );
+
+        int[] otherSafe = findOtherSafeCell(board, 0, 0);
+
+        assertNotNull(otherSafe);
+
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(otherSafe[0], otherSafe[1]).getState()
+        );
+    }
+
+    // Test 49
+    // No eligible covered safe cells means nothing changes
+    @Test
+    public void hintWithNoEligibleCellsDoesNothing() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(0, 0);
+
+        int[] otherSafe = findOtherSafeCell(board, 0, 0);
+
+        assertNotNull(otherSafe);
+
+        board.getCell(otherSafe[0], otherSafe[1])
+                .setState(Cell.State.FLAGGED);
+
+        board.useHint();
+
+        assertEquals(
+                Cell.State.FLAGGED,
+                board.getCell(otherSafe[0], otherSafe[1]).getState()
+        );
+
+        assertEquals(GameStatus.PLAYING, board.getStatus());
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                if (board.getCell(r, c).isMine()) {
+                    assertEquals(
+                            Cell.State.COVERED,
+                            board.getCell(r, c).getState()
+                    );
+                }
+            }
+        }
+    }
+
+    // Test 50
+    // Hint does nothing after winning
+    @Test
+    public void hintAfterWinDoesNothing() {
+        Board board = new Board(3, 3, 8);
+
+        board.revealCell(0, 0);
+
+        assertEquals(GameStatus.WON, board.getStatus());
+
+        board.useHint();
+
+        assertEquals(GameStatus.WON, board.getStatus());
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                Cell cell = board.getCell(r, c);
+
+                if (cell.isMine()) {
+                    assertEquals(
+                            Cell.State.COVERED,
+                            cell.getState()
+                    );
+                } else {
+                    assertEquals(
+                            Cell.State.UNCOVERED,
+                            cell.getState()
+                    );
+                }
+            }
+        }
+    }
+
+    // Test 51
+    // Hint does nothing after losing
+    @Test
+    public void hintAfterLossDoesNothing() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(0, 0);
+
+        int[] mine = findMine(board);
+
+        assertNotNull(mine);
+
+        board.revealCell(mine[0], mine[1]);
+
+        assertEquals(GameStatus.LOST, board.getStatus());
+
+        Cell.State[][] previousStates = new Cell.State[3][3];
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                previousStates[r][c] =
+                        board.getCell(r, c).getState();
+            }
+        }
+
+        board.useHint();
+
+        assertEquals(GameStatus.LOST, board.getStatus());
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+                assertEquals(
+                        previousStates[r][c],
+                        board.getCell(r, c).getState()
+                );
+            }
+        }
+    }
+
+    // Test 52
+    // Hints should choose eligible cells at different coordinates
+    @Test
+    public void hintUsesRandomSelection() {
+        boolean[][] selectedPositions = new boolean[4][4];
+
+        int differentPositions = 0;
+
+        for (int attempt = 0; attempt < 100; attempt++) {
+            Board board = new Board(4, 4, 5);
+
+            board.useHint();
+
+            int selectedRow = -1;
+            int selectedCol = -1;
+
+            for (int r = 0; r < 4; r++) {
+                for (int c = 0; c < 4; c++) {
+                    Cell cell = board.getCell(r, c);
+
+                    if (cell.getState() == Cell.State.UNCOVERED) {
+                        assertFalse(cell.isMine());
+
+                        if (selectedRow == -1) {
+                            selectedRow = r;
+                            selectedCol = c;
+                        }
+                    }
+                }
+            }
+
+            assertTrue(selectedRow != -1);
+
+            if (!selectedPositions[selectedRow][selectedCol]) {
+                selectedPositions[selectedRow][selectedCol] = true;
+                differentPositions++;
+            }
+        }
+
+        assertTrue(
+                differentPositions > 1,
+                "Hints should not always select the same position"
+        );
     }
 }

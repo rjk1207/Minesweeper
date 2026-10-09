@@ -204,4 +204,32 @@ public class Board {
             }
         }
     }
+    
+    public void useHint() {
+        if (status != GameStatus.PLAYING) {
+            return;
+        }
+        int[][] safeCells = new int[rows*cols][2];
+        int safeCount = 0;
+        for (int r = 0; r < getRows(); r++) {
+            for (int c = 0; c < getCols(); c++) {
+                if (cells[r][c].getState() == Cell.State.FLAGGED || cells[r][c].getState() == Cell.State.UNCOVERED) {
+                    continue;
+                }
+                if (!cells[r][c].isMine()) {
+                    safeCells[safeCount][0] = r;
+                    safeCells[safeCount][1] = c;
+                    safeCount++;
+                }
+            }
+        }
+        if (safeCount == 0) {
+            return;
+        }
+        int randomIndex = random.nextInt(safeCount);
+        int[] selected = safeCells[randomIndex];
+        int srow = selected[0];
+        int scol = selected[1];
+        revealCell(srow,scol);
+    }
 }
