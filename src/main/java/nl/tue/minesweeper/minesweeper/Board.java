@@ -240,6 +240,26 @@ public class Board {
         }
     }
 
+    public int scanArea(int row, int col) {
+        if (status != GameStatus.PLAYING || !minesPlaced) {
+            return -1;
+        }
+
+        int count = 0;
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+                int nr = row + dr;
+                int nc = col + dc;
+
+                boolean onBoard = nr >= 0 && nr < rows && nc >= 0 && nc < cols;
+                if (onBoard && cells[nr][nc].isMine()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     public void useHint() {
         if (status != GameStatus.PLAYING) {
             return;
