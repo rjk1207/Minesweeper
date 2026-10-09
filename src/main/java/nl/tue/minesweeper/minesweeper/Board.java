@@ -146,4 +146,62 @@ public class Board {
         }
         status = GameStatus.WON;
     }
+    
+    public void chordCell(int row, int col) {
+        if (status != GameStatus.PLAYING) {
+            return;  
+        }
+        if (cells[row][col].getState() != Cell.State.UNCOVERED) {
+            return;
+        }
+        if (cells[row][col].getNeighbourMines() == 0) {
+            return;
+        }
+        int count = 0;
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+                if (dr == 0 && dc == 0) {
+                    continue;
+                }
+                int nr = row + dr;
+                int nc = col + dc;
+
+                boolean onBoard = nr >= 0 && nr < rows && nc >= 0 && nc < cols;
+                if (!onBoard) {
+                    continue;
+                }
+
+                Cell neighbour = cells[nr][nc];
+                
+                if (neighbour.getState() == Cell.State.FLAGGED) {
+                    count++;
+                }
+            }
+        }
+        if (count == cells[row][col].getNeighbourMines()) {
+            for (int dr = -1; dr <= 1; dr++) {
+                for (int dc = -1; dc <= 1; dc++) {
+                    if (dr == 0 && dc == 0) {
+                        continue;
+                    }
+                    int nr = row + dr;
+                    int nc = col + dc;
+                    
+                    boolean onBoard = nr >= 0 && nr < rows && nc >= 0 && nc < cols;
+                    if (!onBoard) {
+                        continue;
+                    }
+                    
+                    Cell neighbour = cells[nr][nc];
+                    
+                    if (neighbour.getState() == Cell.State.COVERED) {
+                        revealCell(nr,nc);
+                    }
+                    if (status != GameStatus.PLAYING) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
 }

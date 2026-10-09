@@ -1,9 +1,102 @@
+
 package nl.tue.minesweeper.minesweeper;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 public class BoardTest {
+
+    // =========================================================
+    // HELPER METHODS
+    // =========================================================
+
+    private int countMines(Board board) {
+        int count = 0;
+
+        for (int r = 0; r < board.getRows(); r++) {
+            for (int c = 0; c < board.getCols(); c++) {
+                if (board.getCell(r, c).isMine()) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+
+    private int countNeighbourMines(Board board, int row, int col) {
+        int count = 0;
+
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+                if (dr == 0 && dc == 0) {
+                    continue;
+                }
+
+                int nr = row + dr;
+                int nc = col + dc;
+
+                if (nr >= 0 && nr < board.getRows()
+                        && nc >= 0 && nc < board.getCols()) {
+
+                    if (board.getCell(nr, nc).isMine()) {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
+
+    private int[] findMine(Board board) {
+        for (int r = 0; r < board.getRows(); r++) {
+            for (int c = 0; c < board.getCols(); c++) {
+                if (board.getCell(r, c).isMine()) {
+                    return new int[]{r, c};
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private int[] findCoveredCell(Board board) {
+        for (int r = 0; r < board.getRows(); r++) {
+            for (int c = 0; c < board.getCols(); c++) {
+                if (board.getCell(r, c).getState()
+                        == Cell.State.COVERED) {
+                    return new int[]{r, c};
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private int[] findOtherSafeCell(Board board, int row, int col) {
+        for (int r = 0; r < board.getRows(); r++) {
+            for (int c = 0; c < board.getCols(); c++) {
+                if ((r != row || c != col)
+                        && !board.getCell(r, c).isMine()) {
+                    return new int[]{r, c};
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void assertAllUncovered(Board board) {
+        for (int r = 0; r < board.getRows(); r++) {
+            for (int c = 0; c < board.getCols(); c++) {
+                assertEquals(
+                        Cell.State.UNCOVERED,
+                        board.getCell(r, c).getState()
+                );
+            }
+        }
+    }
 
     // =========================================================
     // TESTS 1-5: BOARD CREATION
@@ -53,13 +146,11 @@ public class BoardTest {
         }
     }
 
-
     // =========================================================
     // TESTS 6-10: MINE PLACEMENT
     // =========================================================
 
     // Test 6
-    // Number of requested mines is remembered before placement
     @Test
     public void boardHasCorrectNumberOfMines() {
         Board board = new Board(3, 4, 3);
@@ -68,24 +159,13 @@ public class BoardTest {
     }
 
     // Test 7
-    // Mines are generated after first reveal
     @Test
     public void boardContainsExactlyThreeMines() {
         Board board = new Board(3, 4, 3);
 
         board.revealCell(0, 0);
 
-        int mineCount = 0;
-
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 4; c++) {
-                if (board.getCell(r, c).isMine()) {
-                    mineCount++;
-                }
-            }
-        }
-
-        assertEquals(3, mineCount);
+        assertEquals(3, countMines(board));
     }
 
     // Test 8
@@ -93,43 +173,21 @@ public class BoardTest {
     public void boardContainsZeroMines() {
         Board board = new Board(3, 4, 0);
 
-        int mineCount = 0;
-
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 4; c++) {
-                if (board.getCell(r, c).isMine()) {
-                    mineCount++;
-                }
-            }
-        }
-
-        assertEquals(0, mineCount);
+        assertEquals(0, countMines(board));
     }
 
     // Test 9
-    // Maximum valid number of mines on 2x2 is 3
     @Test
     public void maximumMinesArePlacedAndFirstCellIsSafe() {
         Board board = new Board(2, 2, 3);
 
         board.revealCell(0, 0);
 
-        int mineCount = 0;
-
-        for (int r = 0; r < 2; r++) {
-            for (int c = 0; c < 2; c++) {
-                if (board.getCell(r, c).isMine()) {
-                    mineCount++;
-                }
-            }
-        }
-
-        assertEquals(3, mineCount);
+        assertEquals(3, countMines(board));
         assertFalse(board.getCell(0, 0).isMine());
     }
 
     // Test 10
-    // 2x2 board cannot have 4 mines
     @Test
     public void tooManyMinesThrowsException() {
         assertThrows(
@@ -137,7 +195,6 @@ public class BoardTest {
                 () -> new Board(2, 2, 4)
         );
     }
-
 
     // =========================================================
     // TESTS 11-14: NEIGHBOUR MINE COUNTS
@@ -148,25 +205,10 @@ public class BoardTest {
     public void cornerCellHasCorrectNeighbourMineCount() {
         Board board = new Board(3, 3, 3);
 
-        // Trigger mine placement
         board.revealCell(2, 2);
 
-        int actualMines = 0;
-
-        if (board.getCell(0, 1).isMine()) {
-            actualMines++;
-        }
-
-        if (board.getCell(1, 0).isMine()) {
-            actualMines++;
-        }
-
-        if (board.getCell(1, 1).isMine()) {
-            actualMines++;
-        }
-
         assertEquals(
-                actualMines,
+                countNeighbourMines(board, 0, 0),
                 board.getCell(0, 0).getNeighbourMines()
         );
     }
@@ -176,33 +218,10 @@ public class BoardTest {
     public void edgeCellHasCorrectNeighbourMineCount() {
         Board board = new Board(3, 3, 3);
 
-        // Trigger mine placement
         board.revealCell(2, 2);
 
-        int actualMines = 0;
-
-        if (board.getCell(0, 0).isMine()) {
-            actualMines++;
-        }
-
-        if (board.getCell(0, 2).isMine()) {
-            actualMines++;
-        }
-
-        if (board.getCell(1, 0).isMine()) {
-            actualMines++;
-        }
-
-        if (board.getCell(1, 1).isMine()) {
-            actualMines++;
-        }
-
-        if (board.getCell(1, 2).isMine()) {
-            actualMines++;
-        }
-
         assertEquals(
-                actualMines,
+                countNeighbourMines(board, 0, 1),
                 board.getCell(0, 1).getNeighbourMines()
         );
     }
@@ -212,26 +231,10 @@ public class BoardTest {
     public void centreCellHasCorrectNeighbourMineCount() {
         Board board = new Board(3, 3, 3);
 
-        // Trigger mine placement
         board.revealCell(0, 0);
 
-        int actualMines = 0;
-
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-
-                if (r == 1 && c == 1) {
-                    continue;
-                }
-
-                if (board.getCell(r, c).isMine()) {
-                    actualMines++;
-                }
-            }
-        }
-
         assertEquals(
-                actualMines,
+                countNeighbourMines(board, 1, 1),
                 board.getCell(1, 1).getNeighbourMines()
         );
     }
@@ -241,7 +244,6 @@ public class BoardTest {
     public void boardWithNoMinesHasZeroNeighbourMines() {
         Board board = new Board(3, 3, 0);
 
-        // Trigger official board initialization
         board.revealCell(0, 0);
 
         for (int r = 0; r < 3; r++) {
@@ -253,7 +255,6 @@ public class BoardTest {
             }
         }
     }
-
 
     // =========================================================
     // TESTS 15-18: REVEALING CELLS
@@ -314,7 +315,6 @@ public class BoardTest {
         );
     }
 
-
     // =========================================================
     // TESTS 19-24: FLOOD FILL
     // =========================================================
@@ -326,14 +326,7 @@ public class BoardTest {
 
         board.revealCell(1, 1);
 
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-                assertEquals(
-                        Cell.State.UNCOVERED,
-                        board.getCell(r, c).getState()
-                );
-            }
-        }
+        assertAllUncovered(board);
     }
 
     // Test 20
@@ -343,14 +336,7 @@ public class BoardTest {
 
         board.revealCell(0, 0);
 
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-                assertEquals(
-                        Cell.State.UNCOVERED,
-                        board.getCell(r, c).getState()
-                );
-            }
-        }
+        assertAllUncovered(board);
     }
 
     // Test 21
@@ -423,16 +409,8 @@ public class BoardTest {
         board.revealCell(1, 1);
         board.revealCell(1, 1);
 
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-                assertEquals(
-                        Cell.State.UNCOVERED,
-                        board.getCell(r, c).getState()
-                );
-            }
-        }
+        assertAllUncovered(board);
     }
-
 
     // =========================================================
     // TESTS 25-30: GAME STATUS
@@ -450,31 +428,17 @@ public class BoardTest {
     }
 
     // Test 26
-    // First reveal initializes mines.
-    // Then reveal an actual mine.
     @Test
     public void revealingMineLosesGame() {
-        Board board = new Board(3, 3, 2);
+        Board board = new Board(3, 3, 7);
 
-        // Guaranteed safe first click
         board.revealCell(0, 0);
 
-        int mineRow = -1;
-        int mineCol = -1;
+        int[] mine = findMine(board);
 
-        for (int r = 0; r < 3 && mineRow == -1; r++) {
-            for (int c = 0; c < 3 && mineRow == -1; c++) {
+        assertNotNull(mine);
 
-                if (board.getCell(r, c).isMine()) {
-                    mineRow = r;
-                    mineCol = c;
-                }
-            }
-        }
-
-        assertTrue(mineRow != -1);
-
-        board.revealCell(mineRow, mineCol);
+        board.revealCell(mine[0], mine[1]);
 
         assertEquals(
                 GameStatus.LOST,
@@ -485,90 +449,49 @@ public class BoardTest {
     // Test 27
     @Test
     public void revealedMineIsUncovered() {
-        Board board = new Board(3, 3, 2);
+        Board board = new Board(3, 3, 7);
 
-        // Initialize mines
         board.revealCell(0, 0);
 
-        int mineRow = -1;
-        int mineCol = -1;
+        int[] mine = findMine(board);
 
-        for (int r = 0; r < 3 && mineRow == -1; r++) {
-            for (int c = 0; c < 3 && mineRow == -1; c++) {
+        assertNotNull(mine);
 
-                if (board.getCell(r, c).isMine()) {
-                    mineRow = r;
-                    mineCol = c;
-                }
-            }
-        }
-
-        assertTrue(mineRow != -1);
-
-        board.revealCell(mineRow, mineCol);
+        board.revealCell(mine[0], mine[1]);
 
         assertEquals(
                 Cell.State.UNCOVERED,
-                board.getCell(mineRow, mineCol).getState()
+                board.getCell(mine[0], mine[1]).getState()
         );
     }
 
     // Test 28
     @Test
     public void cannotPlayAfterLoss() {
-        Board board = new Board(3, 3, 2);
+        Board board = new Board(3, 3, 7);
 
-        // Initialize mines
         board.revealCell(0, 0);
 
-        int mineRow = -1;
-        int mineCol = -1;
+        int[] mine = findMine(board);
 
-        // Find a mine
-        for (int r = 0; r < 3 && mineRow == -1; r++) {
-            for (int c = 0; c < 3 && mineRow == -1; c++) {
+        assertNotNull(mine);
 
-                if (board.getCell(r, c).isMine()) {
-                    mineRow = r;
-                    mineCol = c;
-                }
-            }
-        }
-
-        assertTrue(mineRow != -1);
-
-        // Lose
-        board.revealCell(mineRow, mineCol);
+        board.revealCell(mine[0], mine[1]);
 
         assertEquals(
                 GameStatus.LOST,
                 board.getStatus()
         );
 
-        int coveredRow = -1;
-        int coveredCol = -1;
+        int[] covered = findCoveredCell(board);
 
-        // Find another covered cell
-        for (int r = 0; r < 3 && coveredRow == -1; r++) {
-            for (int c = 0; c < 3 && coveredRow == -1; c++) {
+        assertNotNull(covered);
 
-                if (board.getCell(r, c).getState()
-                        == Cell.State.COVERED) {
-
-                    coveredRow = r;
-                    coveredCol = c;
-                }
-            }
-        }
-
-        assertTrue(coveredRow != -1);
-
-        // Try to reveal after losing
-        board.revealCell(coveredRow, coveredCol);
+        board.revealCell(covered[0], covered[1]);
 
         assertEquals(
                 Cell.State.COVERED,
-                board.getCell(coveredRow, coveredCol).getState()
+                board.getCell(covered[0], covered[1]).getState()
         );
 
         assertEquals(
@@ -578,7 +501,6 @@ public class BoardTest {
     }
 
     // Test 29
-    // 8 mines means only first-clicked cell can be safe
     @Test
     public void canWinGame() {
         Board board = new Board(3, 3, 8);
@@ -586,11 +508,6 @@ public class BoardTest {
         board.revealCell(0, 0);
 
         assertFalse(board.getCell(0, 0).isMine());
-
-        assertEquals(
-                Cell.State.UNCOVERED,
-                board.getCell(0, 0).getState()
-        );
 
         assertEquals(
                 GameStatus.WON,
@@ -603,7 +520,6 @@ public class BoardTest {
     public void cannotPlayAfterWin() {
         Board board = new Board(2, 2, 3);
 
-        // First click is guaranteed safe and therefore wins
         board.revealCell(0, 0);
 
         assertEquals(
@@ -611,29 +527,11 @@ public class BoardTest {
                 board.getStatus()
         );
 
-        int mineRow = -1;
-        int mineCol = -1;
+        int[] mine = findMine(board);
 
-        // Mines now exist, so find one
-        for (int r = 0; r < 2 && mineRow == -1; r++) {
-            for (int c = 0; c < 2 && mineRow == -1; c++) {
+        assertNotNull(mine);
 
-                if (board.getCell(r, c).isMine()) {
-                    mineRow = r;
-                    mineCol = c;
-                }
-            }
-        }
-
-        assertTrue(mineRow != -1);
-
-        assertEquals(
-                Cell.State.COVERED,
-                board.getCell(mineRow, mineCol).getState()
-        );
-
-        // Try to reveal mine after winning
-        board.revealCell(mineRow, mineCol);
+        board.revealCell(mine[0], mine[1]);
 
         assertEquals(
                 GameStatus.WON,
@@ -642,81 +540,50 @@ public class BoardTest {
 
         assertEquals(
                 Cell.State.COVERED,
-                board.getCell(mineRow, mineCol).getState()
+                board.getCell(mine[0], mine[1]).getState()
         );
     }
-
 
     // =========================================================
     // TESTS 31-36: FIRST-CLICK-SAFE MINE PLACEMENT
     // =========================================================
 
     // Test 31
-    // No mines should exist before the first valid reveal
     @Test
     public void noMinesBeforeFirstReveal() {
         Board board = new Board(3, 3, 2);
 
-        int mineCount = 0;
-
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-
-                if (board.getCell(r, c).isMine()) {
-                    mineCount++;
-                }
-            }
-        }
-
-        assertEquals(0, mineCount);
+        assertEquals(0, countMines(board));
     }
 
     // Test 32
-    // First valid reveal should cause mines to be placed
     @Test
     public void minesPlacedAfterFirstReveal() {
         Board board = new Board(3, 3, 2);
 
         board.revealCell(1, 1);
 
-        int mineCount = 0;
-
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-
-                if (board.getCell(r, c).isMine()) {
-                    mineCount++;
-                }
-            }
-        }
-
-        assertEquals(2, mineCount);
+        assertEquals(2, countMines(board));
     }
 
     // Test 33
-    // First clicked cell must never contain a mine
     @Test
     public void firstClickedCellIsSafe() {
         Board board = new Board(3, 3, 8);
 
         board.revealCell(1, 1);
 
-        assertFalse(
-                board.getCell(1, 1).isMine()
-        );
+        assertFalse(board.getCell(1, 1).isMine());
     }
 
     // Test 34
-    // First-click safety should also work in a corner
     @Test
     public void firstClickAtCornerIsSafe() {
         Board board = new Board(3, 3, 8);
 
         board.revealCell(0, 0);
 
-        assertFalse(
-                board.getCell(0, 0).isMine()
-        );
+        assertFalse(board.getCell(0, 0).isMine());
 
         assertEquals(
                 Cell.State.UNCOVERED,
@@ -725,17 +592,14 @@ public class BoardTest {
     }
 
     // Test 35
-    // Mine locations must not change after they are first placed
     @Test
     public void minesAreNotPlacedAgain() {
         Board board = new Board(4, 4, 5);
 
-        // First reveal initializes the mines
         board.revealCell(0, 0);
 
         boolean[][] originalMines = new boolean[4][4];
 
-        // Save all mine locations
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {
                 originalMines[r][c] =
@@ -743,33 +607,26 @@ public class BoardTest {
             }
         }
 
-        // Find a covered safe cell for another valid reveal
-        int safeRow = -1;
-        int safeCol = -1;
+        int[] nextSafe = null;
 
-        for (int r = 0; r < 4 && safeRow == -1; r++) {
-            for (int c = 0; c < 4 && safeRow == -1; c++) {
+        for (int r = 0; r < 4 && nextSafe == null; r++) {
+            for (int c = 0; c < 4 && nextSafe == null; c++) {
 
-                if (!board.getCell(r, c).isMine()
-                        && board.getCell(r, c).getState()
-                        == Cell.State.COVERED) {
+                Cell cell = board.getCell(r, c);
 
-                    safeRow = r;
-                    safeCol = c;
+                if (!cell.isMine()
+                        && cell.getState() == Cell.State.COVERED) {
+                    nextSafe = new int[]{r, c};
                 }
             }
         }
 
-        // There may be no covered safe cell if flood fill
-        // already revealed all safe cells and won the game.
-        if (safeRow != -1) {
-            board.revealCell(safeRow, safeCol);
+        if (nextSafe != null) {
+            board.revealCell(nextSafe[0], nextSafe[1]);
         }
 
-        // Compare every mine position with saved positions
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {
-
                 assertEquals(
                         originalMines[r][c],
                         board.getCell(r, c).isMine()
@@ -779,13 +636,353 @@ public class BoardTest {
     }
 
     // Test 36
-    // Entire board cannot consist of mines because the
-    // first clicked cell must always be safe
     @Test
     public void fullBoardOfMinesIsRejected() {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> new Board(2, 2, 4)
         );
+    }
+
+    // =========================================================
+    // TESTS 37-44: CHORDING
+    // =========================================================
+
+    // Test 37
+    // Chording a covered cell does nothing
+    @Test
+    public void chordCoveredCellDoesNothing() {
+        Board board = new Board(3, 3, 2);
+
+        board.chordCell(0, 0);
+
+        assertEquals(
+                Cell.State.COVERED,
+                board.getCell(0, 0).getState()
+        );
+
+        assertEquals(0, countMines(board));
+
+        assertEquals(
+                GameStatus.PLAYING,
+                board.getStatus()
+        );
+    }
+
+    // Test 38
+    // Chording a flagged cell does nothing
+    @Test
+    public void chordFlaggedCellDoesNothing() {
+        Board board = new Board(3, 3, 2);
+
+        board.getCell(0, 0).setState(Cell.State.FLAGGED);
+
+        board.chordCell(0, 0);
+
+        assertEquals(
+                Cell.State.FLAGGED,
+                board.getCell(0, 0).getState()
+        );
+
+        assertEquals(0, countMines(board));
+
+        assertEquals(
+                GameStatus.PLAYING,
+                board.getStatus()
+        );
+    }
+
+    // Test 39
+    // Chording a zero-numbered cell changes nothing
+    @Test
+    public void chordZeroNumberedCellDoesNothing() {
+        Board board = new Board(3, 3, 0);
+
+        board.revealCell(0, 0);
+
+        assertEquals(
+                0,
+                board.getCell(0, 0).getNeighbourMines()
+        );
+
+        board.chordCell(0, 0);
+
+        assertAllUncovered(board);
+
+        assertEquals(
+                GameStatus.WON,
+                board.getStatus()
+        );
+    }
+
+    // Test 40
+    // Too few flags must not reveal additional cells
+    @Test
+    public void chordWithTooFewFlagsDoesNothing() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        // Centre has exactly 7 neighbouring mines.
+        assertEquals(
+                7,
+                board.getCell(1, 1).getNeighbourMines()
+        );
+
+        // Flag only 6 actual mines.
+        int flags = 0;
+
+        for (int r = 0; r < 3 && flags < 6; r++) {
+            for (int c = 0; c < 3 && flags < 6; c++) {
+
+                if (board.getCell(r, c).isMine()) {
+                    board.getCell(r, c).setState(
+                            Cell.State.FLAGGED
+                    );
+                    flags++;
+                }
+            }
+        }
+
+        assertEquals(6, flags);
+
+        int[] safe = findOtherSafeCell(board, 1, 1);
+
+        assertNotNull(safe);
+
+        assertEquals(
+                Cell.State.COVERED,
+                board.getCell(safe[0], safe[1]).getState()
+        );
+
+        board.chordCell(1, 1);
+
+        // Chording should not reveal the safe neighbour.
+        assertEquals(
+                Cell.State.COVERED,
+                board.getCell(safe[0], safe[1]).getState()
+        );
+
+        assertEquals(
+                GameStatus.PLAYING,
+                board.getStatus()
+        );
+    }
+
+    // Test 41
+    // Too many flags must not reveal additional cells
+    @Test
+    public void chordWithTooManyFlagsDoesNothing() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        assertEquals(
+                7,
+                board.getCell(1, 1).getNeighbourMines()
+        );
+
+        // Flag all 8 neighbours, including the safe cell.
+        int flags = 0;
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+
+                if (r == 1 && c == 1) {
+                    continue;
+                }
+
+                board.getCell(r, c).setState(
+                        Cell.State.FLAGGED
+                );
+                flags++;
+            }
+        }
+
+        assertEquals(8, flags);
+
+        board.chordCell(1, 1);
+
+        // Every neighbour must remain flagged.
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+
+                if (r == 1 && c == 1) {
+                    continue;
+                }
+
+                assertEquals(
+                        Cell.State.FLAGGED,
+                        board.getCell(r, c).getState()
+                );
+            }
+        }
+
+        assertEquals(
+                GameStatus.PLAYING,
+                board.getStatus()
+        );
+    }
+
+    // Test 42
+    // Correct flags reveal remaining safe neighbours
+    @Test
+    public void chordWithCorrectFlagsRevealsNeighbours() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        assertEquals(
+                7,
+                board.getCell(1, 1).getNeighbourMines()
+        );
+
+        // Find the second safe cell.
+        int[] safe = findOtherSafeCell(board, 1, 1);
+
+        assertNotNull(safe);
+
+        assertEquals(
+                Cell.State.COVERED,
+                board.getCell(safe[0], safe[1]).getState()
+        );
+
+        // Flag all 7 actual mines.
+        int flags = 0;
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+
+                if (board.getCell(r, c).isMine()) {
+                    board.getCell(r, c).setState(
+                            Cell.State.FLAGGED
+                    );
+                    flags++;
+                }
+            }
+        }
+
+        assertEquals(7, flags);
+
+        board.chordCell(1, 1);
+
+        // The remaining safe cell must be revealed.
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(safe[0], safe[1]).getState()
+        );
+
+        assertEquals(
+                GameStatus.WON,
+                board.getStatus()
+        );
+    }
+
+    // Test 43
+    // Incorrect flags cause chording to reveal a mine
+    @Test
+    public void chordWithIncorrectFlagsLosesGame() {
+        Board board = new Board(3, 3, 7);
+
+        board.revealCell(1, 1);
+
+        assertEquals(
+                7,
+                board.getCell(1, 1).getNeighbourMines()
+        );
+
+        // Find the only other safe cell.
+        int[] safe = findOtherSafeCell(board, 1, 1);
+
+        assertNotNull(safe);
+
+        // Incorrectly flag the safe cell.
+        board.getCell(safe[0], safe[1]).setState(
+                Cell.State.FLAGGED
+        );
+
+        // Flag only 6 of the 7 actual mines.
+        int mineFlags = 0;
+
+        for (int r = 0; r < 3 && mineFlags < 6; r++) {
+            for (int c = 0; c < 3 && mineFlags < 6; c++) {
+
+                if (board.getCell(r, c).isMine()) {
+                    board.getCell(r, c).setState(
+                            Cell.State.FLAGGED
+                    );
+                    mineFlags++;
+                }
+            }
+        }
+
+        assertEquals(6, mineFlags);
+
+        // Total flags = 6 mines + 1 safe cell = 7.
+        // This matches the centre cell's number,
+        // but one actual mine is still unflagged.
+        int[] unflaggedMine = null;
+
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+
+                if (board.getCell(r, c).isMine()
+                        && board.getCell(r, c).getState()
+                        == Cell.State.COVERED) {
+                    unflaggedMine = new int[]{r, c};
+                }
+            }
+        }
+
+        assertNotNull(unflaggedMine);
+
+        board.chordCell(1, 1);
+
+        assertEquals(
+                GameStatus.LOST,
+                board.getStatus()
+        );
+
+        assertEquals(
+                Cell.State.UNCOVERED,
+                board.getCell(
+                        unflaggedMine[0],
+                        unflaggedMine[1]
+                ).getState()
+        );
+    }
+
+    // Test 44
+    // Chording after the game ends does nothing
+    @Test
+    public void chordAfterGameEndedDoesNothing() {
+        Board board = new Board(3, 3, 8);
+
+        board.revealCell(1, 1);
+
+        assertEquals(
+                GameStatus.WON,
+                board.getStatus()
+        );
+
+        board.chordCell(1, 1);
+
+        assertEquals(
+                GameStatus.WON,
+                board.getStatus()
+        );
+
+        // Every mine should still be covered.
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
+
+                if (board.getCell(r, c).isMine()) {
+                    assertEquals(
+                            Cell.State.COVERED,
+                            board.getCell(r, c).getState()
+                    );
+                }
+            }
+        }
     }
 }
