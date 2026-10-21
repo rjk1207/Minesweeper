@@ -11,6 +11,8 @@ public class Board {
     private GameStatus status = GameStatus.PLAYING;
     private boolean minesPlaced = false;
     private boolean shieldActive = false;
+    private long frozenUntil = 0;
+    private long fogUntil = 0;
 
     public Board(int rows, int cols, int numberOfMines) {
         if (rows < 1 || cols < 1) {
@@ -82,8 +84,28 @@ public class Board {
         }
     }
 
+    public void freeze(long durationMillis) {
+        if (status == GameStatus.PLAYING) {
+            frozenUntil = Math.max(frozenUntil, System.currentTimeMillis() + durationMillis);
+        }
+    }
+
+    public boolean isFrozen() {
+        return System.currentTimeMillis() < frozenUntil;
+    }
+
+    public void fog(long durationMillis) {
+        if (status == GameStatus.PLAYING) {
+            fogUntil = Math.max(fogUntil, System.currentTimeMillis() + durationMillis);
+        }
+    }
+
+    public boolean isFogged() {
+        return System.currentTimeMillis() < fogUntil;
+    }
+
     public void revealCell(int row, int col) {
-        if (status != GameStatus.PLAYING) {
+        if (status != GameStatus.PLAYING || isFrozen()) {
             return;
         }
 
@@ -174,7 +196,7 @@ public class Board {
     }
 
     public void chordCell(int row, int col) {
-        if (status != GameStatus.PLAYING) {
+        if (status != GameStatus.PLAYING || isFrozen()) {
             return;
         }
         if (cells[row][col].getState() != Cell.State.UNCOVERED) {
