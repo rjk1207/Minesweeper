@@ -65,6 +65,22 @@ public class Match {
         return safeUncovered * POINTS_PER_SAFE_CELL;
     }
 
+    public boolean applySabotage(int attackingPlayer, Sabotage sabotage) {
+        if (attackingPlayer != 1 && attackingPlayer != 2) {
+            throw new IllegalArgumentException("Player must be 1 or 2");
+        }
+        if (sabotage == null) {
+            throw new IllegalArgumentException("Sabotage must not be null");
+        }
+        if (isFinished()) {
+            return false;
+        }
+
+        Board target = (attackingPlayer == 1) ? player2Board : player1Board;
+        sabotage.apply(target);
+        return true;
+    }
+
     public MatchResult getResult() {
         if (!isFinished()) {
             return MatchResult.IN_PROGRESS;
