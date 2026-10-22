@@ -1,3 +1,4 @@
+
 package nl.tue.minesweeper.minesweeper;
 
 import java.util.Random;
@@ -79,7 +80,7 @@ public class Board {
     public boolean isShieldActive() { return shieldActive; }
 
     public void activateShield() {
-        if (status == GameStatus.PLAYING) {
+        if (status == GameStatus.PLAYING && !isFrozen()) {
             shieldActive = true;
         }
     }
@@ -263,7 +264,7 @@ public class Board {
     }
 
     public int scanArea(int row, int col) {
-        if (status != GameStatus.PLAYING || !minesPlaced) {
+        if (status != GameStatus.PLAYING || !minesPlaced || isFrozen()) {
             return -1;
         }
 
@@ -283,7 +284,7 @@ public class Board {
     }
 
     public void useHint() {
-        if (status != GameStatus.PLAYING) {
+        if (status != GameStatus.PLAYING || isFrozen()) {
             return;
         }
         int[][] safeCells = new int[rows*cols][2];

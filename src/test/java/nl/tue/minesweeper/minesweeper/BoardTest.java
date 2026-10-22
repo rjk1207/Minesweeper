@@ -1589,6 +1589,11 @@ public class BoardTest {
 
         board.revealCell(2, 2);
 
+        if (board.getStatus() == GameStatus.WON) {
+            assertEquals(-1, board.scanArea(0, 0));
+            return;
+        }
+
         // Find a 3x3 area that contains no mines.
         int[] emptyArea = null;
 

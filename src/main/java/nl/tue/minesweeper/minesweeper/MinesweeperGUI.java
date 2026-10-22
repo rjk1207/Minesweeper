@@ -11,12 +11,10 @@ public class MinesweeperGUI {
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel gameArea;
-    private JPanel headerPanel;
 
     private JLabel statusLabel;
     private JLabel timerLabel;
     private JLabel messageLabel;
-    private JLabel controlsLabel;
 
     private JComboBox<String> modeBox;
     private JComboBox<String> difficultyBox;
@@ -30,11 +28,7 @@ public class MinesweeperGUI {
     private JLabel[] playerMineLabels;
     private JLabel[] playerAbilityLabels;
 
-    private JPanel[] playerPanels;
-    private JPanel[] boardPanels;
-
     private Match match;
-
     private Timer gameTimer;
     private Timer refreshTimer;
 
@@ -68,10 +62,6 @@ public class MinesweeperGUI {
         return "Multiplayer".equals(modeBox.getSelectedItem());
     }
 
-    private int playerCount() {
-        return isMultiplayer() ? 2 : 1;
-    }
-
     private void createWindow() {
         frame = new JFrame("Minesweeper");
         frame.setSize(1350, 850);
@@ -83,36 +73,32 @@ public class MinesweeperGUI {
         mainPanel.setBackground(backgroundColor);
         mainPanel.setBorder(
                 BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        mainPanel.setFocusable(true);
 
         JLabel titleLabel = new JLabel("MINESWEEPER");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 26));
         titleLabel.setForeground(textColor);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         statusLabel = new JLabel("Status: Playing");
         statusLabel.setFont(new Font("Arial", Font.BOLD, 17));
-        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         timerLabel = new JLabel("Time: 00:00");
         timerLabel.setFont(new Font("Arial", Font.BOLD, 15));
-        timerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         messageLabel = new JLabel("Game ready");
         messageLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-        messageLabel.setForeground(new Color(71, 85, 105));
-        messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        controlsLabel = new JLabel(
-                "P1: WASD, Space, F, H, G, C | P2: Arrows, Enter, L, O, P, K");
-        controlsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        controlsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel controlsLabel = new JLabel(
+                "P1: WASD, Space, F, H, G, C | "
+                + "P2: Arrows, Enter, L, O, P, K");
 
         modeBox = new JComboBox<>(
                 new String[]{"Single Player", "Multiplayer"});
-        modeBox.setFocusable(false);
 
         difficultyBox = new JComboBox<>(
                 new String[]{"Easy", "Medium", "Hard"});
+
+        modeBox.setFocusable(false);
         difficultyBox.setFocusable(false);
 
         JButton restartButton = new JButton("Restart Game");
@@ -127,7 +113,7 @@ public class MinesweeperGUI {
         settingsPanel.add(difficultyBox);
         settingsPanel.add(restartButton);
 
-        headerPanel = new JPanel();
+        JPanel headerPanel = new JPanel();
         headerPanel.setLayout(
                 new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setOpaque(false);
@@ -179,6 +165,7 @@ public class MinesweeperGUI {
         refreshTimer.start();
 
         frame.setVisible(true);
+        mainPanel.requestFocusInWindow();
     }
 
     private void restartCurrentDifficulty() {
@@ -201,17 +188,16 @@ public class MinesweeperGUI {
         timerStarted = false;
         updateTimerLabel();
 
-        int count = playerCount();
+        int count = isMultiplayer() ? 2 : 1;
 
         boards = new Board[count];
         controllers = new GameController[count];
         buttons = new JButton[count][][];
+
         playerStatusLabels = new JLabel[count];
         playerScoreLabels = new JLabel[count];
         playerMineLabels = new JLabel[count];
         playerAbilityLabels = new JLabel[count];
-        playerPanels = new JPanel[count];
-        boardPanels = new JPanel[count];
 
         if (isMultiplayer()) {
             match = new Match(rows, cols, mines);
@@ -228,12 +214,10 @@ public class MinesweeperGUI {
         }
 
         gameArea.removeAll();
-        gameArea.setLayout(
-                new GridLayout(1, count, 12, 0));
+        gameArea.setLayout(new GridLayout(1, count, 12, 0));
 
         for (int player = 0; player < count; player++) {
-            createPlayerPanel(player);
-            gameArea.add(playerPanels[player]);
+            gameArea.add(createPlayerPanel(player));
         }
 
         messageLabel.setText("Game ready");
@@ -245,9 +229,12 @@ public class MinesweeperGUI {
 
         rebuilding = false;
         updateDisplay();
+
+        SwingUtilities.invokeLater(() ->
+                mainPanel.requestFocusInWindow());
     }
 
-    private void createPlayerPanel(int player) {
+    private JPanel createPlayerPanel(int player) {
         Board currentBoard = boards[player];
 
         JPanel panel = new JPanel(new BorderLayout(0, 8));
@@ -262,28 +249,15 @@ public class MinesweeperGUI {
                 ? "PLAYER " + (player + 1)
                 : "SINGLE PLAYER");
 
-        nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
         nameLabel.setFont(new Font("Arial", Font.BOLD, 19));
-        nameLabel.setForeground(textColor);
 
         playerStatusLabels[player] = new JLabel("Playing");
-        playerStatusLabels[player].setHorizontalAlignment(
-                SwingConstants.CENTER);
-
         playerScoreLabels[player] = new JLabel("Score: 0");
-        playerScoreLabels[player].setHorizontalAlignment(
-                SwingConstants.CENTER);
 
         playerMineLabels[player] = new JLabel(
                 "Mines Remaining: " + currentBoard.getNumberOfMines());
-        playerMineLabels[player].setHorizontalAlignment(
-                SwingConstants.CENTER);
 
         playerAbilityLabels[player] = new JLabel("Abilities ready");
-        playerAbilityLabels[player].setHorizontalAlignment(
-                SwingConstants.CENTER);
-        playerAbilityLabels[player].setFont(
-                new Font("Arial", Font.PLAIN, 12));
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(
@@ -297,9 +271,9 @@ public class MinesweeperGUI {
         infoPanel.add(playerAbilityLabels[player]);
 
         for (Component component : infoPanel.getComponents()) {
-            if (component instanceof JComponent) {
-                ((JComponent) component).setAlignmentX(
-                        Component.CENTER_ALIGNMENT);
+            if (component instanceof JLabel) {
+                JLabel label = (JLabel) component;
+                label.setAlignmentX(Component.CENTER_ALIGNMENT);
             }
         }
 
@@ -308,11 +282,11 @@ public class MinesweeperGUI {
         int rows = currentBoard.getRows();
         int cols = currentBoard.getCols();
 
-        JPanel grid = new JPanel(new GridLayout(
-                rows, cols, 2, 2));
+        JPanel grid = new JPanel(
+                new GridLayout(rows, cols, 2, 2));
+
         grid.setBackground(new Color(148, 163, 184));
 
-        boardPanels[player] = grid;
         buttons[player] = new JButton[rows][cols];
 
         int cellSize = cols > 16 ? 24 : 32;
@@ -355,34 +329,32 @@ public class MinesweeperGUI {
                 new BoxLayout(actionPanel, BoxLayout.Y_AXIS));
         actionPanel.setOpaque(false);
 
-        JPanel abilityButtons = new JPanel(new FlowLayout(
+        JPanel abilityPanel = new JPanel(new FlowLayout(
                 FlowLayout.CENTER, 5, 3));
-        abilityButtons.setOpaque(false);
+        abilityPanel.setOpaque(false);
 
         JButton hintButton = new JButton("Hint");
         JButton shieldButton = new JButton("Shield");
-        JButton scanButton = new JButton("Scanner");
+        JButton scannerButton = new JButton("Scanner");
 
         hintButton.setFocusable(false);
         shieldButton.setFocusable(false);
-        scanButton.setFocusable(false);
+        scannerButton.setFocusable(false);
 
-        final int playerIndex = player;
+        hintButton.addActionListener(e -> useHint(player));
+        shieldButton.addActionListener(e -> useShield(player));
+        scannerButton.addActionListener(e -> useScanner(player));
 
-        hintButton.addActionListener(e -> useHint(playerIndex));
-        shieldButton.addActionListener(e -> useShield(playerIndex));
-        scanButton.addActionListener(e -> useScanner(playerIndex));
+        abilityPanel.add(hintButton);
+        abilityPanel.add(shieldButton);
+        abilityPanel.add(scannerButton);
 
-        abilityButtons.add(hintButton);
-        abilityButtons.add(shieldButton);
-        abilityButtons.add(scanButton);
-
-        actionPanel.add(abilityButtons);
+        actionPanel.add(abilityPanel);
 
         if (isMultiplayer()) {
-            JPanel sabotageButtons = new JPanel(new FlowLayout(
+            JPanel sabotagePanel = new JPanel(new FlowLayout(
                     FlowLayout.CENTER, 5, 3));
-            sabotageButtons.setOpaque(false);
+            sabotagePanel.setOpaque(false);
 
             JButton freezeButton = new JButton("Freeze");
             JButton fogButton = new JButton("Fog");
@@ -392,30 +364,28 @@ public class MinesweeperGUI {
             fogButton.setFocusable(false);
             recoverButton.setFocusable(false);
 
-            freezeButton.addActionListener(e -> useSabotage(
-                    playerIndex,
-                    new FreezeSabotage(5000),
-                    "Freeze"));
+            freezeButton.addActionListener(e ->
+                    useSabotage(player,
+                            new FreezeSabotage(5000), "Freeze"));
 
-            fogButton.addActionListener(e -> useSabotage(
-                    playerIndex,
-                    new FogSabotage(5000),
-                    "Fog"));
+            fogButton.addActionListener(e ->
+                    useSabotage(player,
+                            new FogSabotage(5000), "Fog"));
 
-            recoverButton.addActionListener(e -> useSabotage(
-                    playerIndex,
-                    new RecoverSabotage(3),
-                    "Recover"));
+            recoverButton.addActionListener(e ->
+                    useSabotage(player,
+                            new RecoverSabotage(3), "Recover"));
 
-            sabotageButtons.add(freezeButton);
-            sabotageButtons.add(fogButton);
-            sabotageButtons.add(recoverButton);
+            sabotagePanel.add(freezeButton);
+            sabotagePanel.add(fogButton);
+            sabotagePanel.add(recoverButton);
 
-            actionPanel.add(sabotageButtons);
+            actionPanel.add(sabotagePanel);
         }
 
         panel.add(actionPanel, BorderLayout.SOUTH);
-        playerPanels[player] = panel;
+
+        return panel;
     }
 
     private void setupKeyboardControls() {
@@ -533,7 +503,15 @@ public class MinesweeperGUI {
                 && boards[player].getStatus() == GameStatus.PLAYING;
     }
 
+    private boolean canAct(int player) {
+        return canPlay(player) && !boards[player].isFrozen();
+    }
+
     private boolean isGameFinished() {
+        if (boards == null) {
+            return false;
+        }
+
         if (isMultiplayer()) {
             return match != null && match.isFinished();
         }
@@ -549,7 +527,7 @@ public class MinesweeperGUI {
     }
 
     private void revealSelectedCell(int player) {
-        if (!canPlay(player)) {
+        if (!canAct(player)) {
             return;
         }
 
@@ -572,7 +550,7 @@ public class MinesweeperGUI {
     }
 
     private void toggleFlag(int player) {
-        if (!canPlay(player)) {
+        if (!canAct(player)) {
             return;
         }
 
@@ -609,7 +587,7 @@ public class MinesweeperGUI {
     }
 
     private void useHint(int player) {
-        if (!canPlay(player)) {
+        if (!canAct(player)) {
             return;
         }
 
@@ -632,7 +610,7 @@ public class MinesweeperGUI {
     }
 
     private void useShield(int player) {
-        if (!canPlay(player)) {
+        if (!canAct(player)) {
             return;
         }
 
@@ -652,7 +630,7 @@ public class MinesweeperGUI {
     }
 
     private void useScanner(int player) {
-        if (!canPlay(player)) {
+        if (!canAct(player)) {
             return;
         }
 
@@ -681,7 +659,15 @@ public class MinesweeperGUI {
             return;
         }
 
-        if (!canPlay(player)) {
+        if (!canAct(player)) {
+            return;
+        }
+
+        int targetPlayer = player == 0 ? 1 : 0;
+
+        if (boards[targetPlayer].getStatus() != GameStatus.PLAYING) {
+            playerAbilityLabels[player].setText(
+                    "Opponent has finished");
             return;
         }
 
@@ -689,7 +675,7 @@ public class MinesweeperGUI {
                 player + 1, sabotage);
 
         if (applied) {
-            int opponent = player == 0 ? 2 : 1;
+            int opponent = targetPlayer + 1;
 
             playerAbilityLabels[player].setText(
                     name + " sent to Player " + opponent);
@@ -736,7 +722,8 @@ public class MinesweeperGUI {
 
                 gameTimer.stop();
             } else {
-                statusLabel.setText("Multiplayer Match In Progress");
+                statusLabel.setText(
+                        "Multiplayer Match In Progress");
             }
         } else {
             GameStatus status = boards[0].getStatus();
@@ -758,6 +745,7 @@ public class MinesweeperGUI {
         GameController currentController = controllers[player];
 
         int flaggedCells = 0;
+        boolean fogged = currentBoard.isFogged();
 
         for (int row = 0; row < currentBoard.getRows(); row++) {
             for (int col = 0; col < currentBoard.getCols(); col++) {
@@ -813,6 +801,12 @@ public class MinesweeperGUI {
                     }
                 }
 
+                if (fogged) {
+                    button.setText("");
+                    button.setBackground(new Color(71, 85, 105));
+                    button.setForeground(Color.WHITE);
+                }
+
                 if (row == currentController.getSelectedRow()
                         && col == currentController.getSelectedCol()) {
                     button.setBorder(selectedBorder);
@@ -840,10 +834,24 @@ public class MinesweeperGUI {
             playerStatusLabels[player].setText("Won");
             playerStatusLabels[player].setForeground(
                     new Color(21, 128, 61));
+
         } else if (currentBoard.getStatus() == GameStatus.LOST) {
             playerStatusLabels[player].setText("Lost");
             playerStatusLabels[player].setForeground(
                     new Color(220, 38, 38));
+
+        } else if (currentBoard.isFrozen()) {
+            playerStatusLabels[player].setText(
+                    "Frozen - actions blocked");
+            playerStatusLabels[player].setForeground(
+                    new Color(37, 99, 235));
+
+        } else if (fogged) {
+            playerStatusLabels[player].setText(
+                    "Fogged - board hidden");
+            playerStatusLabels[player].setForeground(
+                    new Color(100, 116, 139));
+
         } else {
             playerStatusLabels[player].setText("Playing");
             playerStatusLabels[player].setForeground(textColor);
