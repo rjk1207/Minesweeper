@@ -7,6 +7,9 @@ public class Match {
     private final Board player2Board;
     private final GameController player1Controller;
     private final GameController player2Controller;
+    private static final int MAX_SABOTAGES_PER_PLAYER = 2;
+    private int player1SabotagesUsed = 0;
+    private int player2SabotagesUsed = 0;
 
     public Match(int rows, int cols, int numberOfMines) {
         this.player1Board = new Board(rows, cols, numberOfMines);
@@ -65,6 +68,14 @@ public class Match {
         return safeUncovered * POINTS_PER_SAFE_CELL;
     }
 
+    public int getRemainingSabotages(int player) {
+        if (player != 1 && player != 2) {
+            throw new IllegalArgumentException("Player must be 1 or 2");
+        }
+        int used = (player == 1) ? player1SabotagesUsed : player2SabotagesUsed;
+        return MAX_SABOTAGES_PER_PLAYER - used;
+    }
+
     public boolean applySabotage(int attackingPlayer, Sabotage sabotage) {
         if (attackingPlayer != 1 && attackingPlayer != 2) {
             throw new IllegalArgumentException("Player must be 1 or 2");
@@ -75,9 +86,18 @@ public class Match {
         if (isFinished()) {
             return false;
         }
+        if (getRemainingSabotages(attackingPlayer) <= 0) {
+            return false;
+        }
 
         Board target = (attackingPlayer == 1) ? player2Board : player1Board;
         sabotage.apply(target);
+
+        if (attackingPlayer == 1) {
+            player1SabotagesUsed++;
+        } else {
+            player2SabotagesUsed++;
+        }
         return true;
     }
 
