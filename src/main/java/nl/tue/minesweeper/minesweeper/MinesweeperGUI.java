@@ -1,4 +1,3 @@
-
 package nl.tue.minesweeper.minesweeper;
 
 import javax.swing.*;
@@ -89,8 +88,10 @@ public class MinesweeperGUI {
         messageLabel.setFont(new Font("Arial", Font.PLAIN, 13));
 
         JLabel controlsLabel = new JLabel(
-                "P1: WASD, Space, F, H, G, C | "
-                + "P2: Arrows, Enter, L, O, P, K");
+                "<html><div style='text-align:center'>"
+                + "P1: WASD, Space, F, H, G, C | Sabotage: Q freeze, E fog, R recover<br>"
+                + "P2: Arrows, Enter, L, O, P, K | Sabotage: U freeze, I fog, J recover"
+                + "</div></html>");
 
         modeBox = new JComboBox<>(
                 new String[]{"Single Player", "Multiplayer"});
@@ -418,6 +419,13 @@ public class MinesweeperGUI {
                 () -> useScanner(0));
 
         if (isMultiplayer()) {
+            bindKey(inputMap, actionMap, "Q", "p1-freeze",
+                    () -> useSabotage(0, new FreezeSabotage(5000), "Freeze"));
+            bindKey(inputMap, actionMap, "E", "p1-fog",
+                    () -> useSabotage(0, new FogSabotage(5000), "Fog"));
+            bindKey(inputMap, actionMap, "R", "p1-recover",
+                    () -> useSabotage(0, new RecoverSabotage(3), "Recover"));
+
             bindKey(inputMap, actionMap, "UP", "p2-up",
                     () -> movePlayer(1, "UP"));
             bindKey(inputMap, actionMap, "DOWN", "p2-down",
@@ -437,6 +445,13 @@ public class MinesweeperGUI {
                     () -> useShield(1));
             bindKey(inputMap, actionMap, "K", "p2-scan",
                     () -> useScanner(1));
+
+            bindKey(inputMap, actionMap, "U", "p2-freeze",
+                    () -> useSabotage(1, new FreezeSabotage(5000), "Freeze"));
+            bindKey(inputMap, actionMap, "I", "p2-fog",
+                    () -> useSabotage(1, new FogSabotage(5000), "Fog"));
+            bindKey(inputMap, actionMap, "J", "p2-recover",
+                    () -> useSabotage(1, new RecoverSabotage(3), "Recover"));
         } else {
             bindKey(inputMap, actionMap, "UP", "single-up",
                     () -> movePlayer(0, "UP"));
@@ -671,14 +686,21 @@ public class MinesweeperGUI {
             return;
         }
 
+        if (match.getRemainingSabotages(player + 1) <= 0) {
+            playerAbilityLabels[player].setText(
+                    "No sabotages left");
+            return;
+        }
+
         boolean applied = match.applySabotage(
                 player + 1, sabotage);
 
         if (applied) {
-            int opponent = targetPlayer + 1;
+            int left = match.getRemainingSabotages(player + 1);
 
             playerAbilityLabels[player].setText(
-                    name + " sent to Player " + opponent);
+                    name + " sent to Player " + (targetPlayer + 1)
+                    + " (" + left + " left)");
 
             messageLabel.setText(
                     "Player " + (player + 1)
