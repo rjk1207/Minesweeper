@@ -1,4 +1,3 @@
-
 package nl.tue.minesweeper.minesweeper;
 
 import static org.junit.jupiter.api.Assertions.*;

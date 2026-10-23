@@ -1,256 +1,114 @@
+Minesweeper Project
 
+A  Java Swing Minesweeper application supporting single player and local two
+player multiplayer gameplay.
+Players navigate a grid, reveal safe cells, and identify mines using numerical
+clues.
+The game also includes abilities such as Hint, Shield and Scanner, alongside 
+multiplayer sabotage features like Freeze, Fog and Recover.
 
-\# Minesweeper — Java Multiplayer Game
 
 
+1. System Requirements
 
-A Java-based Minesweeper game developed using Apache NetBeans, Maven, and Java Swing.
+a. Java Development Kit - JDK25
+b. Build tool - Apache Maven
+c. OS - Windows, MacOS, or Linux
+d. UI - Graphical desktop environment
+e. IDE (OPTIONAL) - Apache NetBeans
 
+An internet connection may be required during the first build so that Maven can
+download the necessary dependencies.
 
+No external game engine or database required.
 
-The project supports both single-player and two-player gameplay, with power-ups and sabotage abilities that add strategic elements to the classic Minesweeper experience.
+To verify Java and Maven installation-
+1. Open PowerShell or Terminal
+2. Run "java -version" and then "javac -version". Both commands should output 
+Java version 25.
+3. Run "mvn -version". This will display the installed Maven version. Make sure
+Maven is using JDK25.
+4. If Java is not installed, install JDK25 and ensure the JDK is available 
+through the system's PATH.
+5. If Maven is not recognized, install Apache Maven and configure the PATH 
+environment variable.
 
 
 
-\## Features
+2. Extracting the Project
 
+a. Download the ZIP file.
+b. Extract. 
+c. Open extracted project folder names Minesweeper.
+d. Locate the file pom.xml.
 
+pom.xml file marks the root directory of the Maven Project.
 
-\- Single-player and multiplayer modes
+The src/main/java directory contains the application source code. The
+src/test/java directory contains automated tests.
 
-\- Three difficulty levels: Easy, Medium, and Hard
 
-\- Keyboard-controlled gameplay
 
-\- First-click protection
+3. Building the Application
 
-\- Automatic revealing of connected empty cells
+a. Launch Apache NetBeans
+b. Select File then Open Project.
+c. Select the project folder containing pom.xml.
+d. Click Open Project
+e. Right click the project name in the panel on the left.
+f. Select Clean and Build.
+g. Wait until output window displays BUILD SUCCESS.
 
-\- Cell flagging and chording
 
-\- Win and loss detection
 
-\- Multiplayer scoring system
+4. Running the Application
 
-\- Restart functionality
+a. Open the Minesweeper project in NetBeans.
+b. Expand Source Packages.
+c. Open the package nl.tue.minesweeper.minesweeper.
+d. Locate MinesweeperGUI.java.
+e. Right click the file and click Run File.
 
 
 
-\## Power-Ups
+5. Game Features and Controls
 
+The application supports **single-player and two-player multiplayer** modes, 
+with three difficulty levels: Easy, Medium, and Hard.
 
+Players must reveal safe cells while avoiding mines. The game includes special 
+abilities (Hint, Shield, Scanner) and multiplayer sabotages (Freeze, Fog, Re-cover).
 
-\### Hint
+Player 1 Controls:
+- Movement: W, A, S, D
+- Reveal: Space
+- Flag/Unflag: F
+- Hint, Shield, Scanner: H, G, C
+- Freeze, Fog, Re-cover: Q, E, R
 
-Automatically reveals an eligible safe cell.
+Player 2 Controls:
+- Movement: Arrow Keys
+- Reveal: Enter
+- Flag/Unflag: L
+- Hint, Shield, Scanner: O, P, K
+- Freeze, Fog, Re-cover: U, I, J
 
+In multiplayer, players compete on separate boards and earn points by revealing 
+safe cells. Each player can use up to two sabotages per match.
 
 
-\### Shield
 
-Protects the player against a mine during the next valid action.
+6. Testing
 
+The application uses JUnit 5 for automated testing. To execute the tests, right
+click the project and click Test. 
 
 
-\### Scanner
 
-Reports the number of mines in the selected cell's surrounding 3×3 area.
+7. Troubleshooting
 
-
-
-\## Multiplayer Sabotage
-
-
-
-\### Freeze
-
-Temporarily prevents the opponent from performing game actions.
-
-
-
-\### Fog
-
-Temporarily hides the opponent's board information.
-
-
-
-\### Recover
-
-Covers previously revealed safe cells on the opponent's board.
-
-
-
-\## Controls
-
-
-
-\### Player 1
-
-
-
-| Key | Action |
-
-| --- | --- |
-
-| W | Move up |
-
-| A | Move left |
-
-| S | Move down |
-
-| D | Move right |
-
-| Space | Reveal cell |
-
-| F | Flag cell |
-
-| H | Hint |
-
-| G | Shield |
-
-| C | Scanner |
-
-
-
-\### Player 2
-
-
-
-| Key | Action |
-
-| --- | --- |
-
-| Up Arrow | Move up |
-
-| Left Arrow | Move left |
-
-| Down Arrow | Move down |
-
-| Right Arrow | Move right |
-
-| Enter | Reveal cell |
-
-| L | Flag cell |
-
-| O | Hint |
-
-| P | Shield |
-
-| K | Scanner |
-
-
-
-Sabotage abilities can be activated using the buttons in the multiplayer interface.
-
-
-
-\## Technologies
-
-
-
-\- Java
-
-\- Java Swing
-
-\- Apache NetBeans
-
-\- Maven
-
-\- JUnit 5
-
-\- Git and GitHub
-
-
-
-\## Running the Project
-
-
-
-1\. Clone the repository.
-
-2\. Open Apache NetBeans.
-
-3\. Select File > Open Project.
-
-4\. Choose the Minesweeper project folder.
-
-5\. Allow Maven dependencies to load.
-
-6\. Run `MinesweeperGUI.java`.
-
-7\. Select the game mode and difficulty.
-
-
-
-\## Testing
-
-
-
-The project includes automated JUnit tests covering:
-
-
-
-\- Board initialization
-
-\- Mine placement
-
-\- Neighbour mine calculations
-
-\- Revealing and flagging cells
-
-\- Flood-fill functionality
-
-\- Game status
-
-\- Chording
-
-\- Hint, Shield, and Scanner
-
-\- Multiplayer matches
-
-\- Sabotage abilities
-
-
-
-Final verified test results:
-
-
-
-\- Tests executed: 143
-
-\- Tests passed: 143
-
-\- Failures: 0
-
-\- Errors: 0
-
-
-
-\## Team Development
-
-
-
-The project was developed collaboratively by two developers.
-
-
-
-\### Developer 1
-
-Focused on the game logic, board functionality, multiplayer systems, and backend implementation.
-
-
-
-\### Developer 2
-
-Focused on the Java Swing graphical interface, keyboard controls, multiplayer interaction, and integration testing.
-
-
-
-\## Repository
-
-
-
-https://github.com/rjk1207/Minesweeper
-
-
-
+- **Build fails:** Verify that Maven is using JDK 25.
+- **Application does not launch:** Ensure the terminal is opened in the project 
+directory containing `pom.xml`.
+- **Keyboard controls do not respond:** Make sure the game window is active.
+- **Dependencies cannot be downloaded:** Check your internet connection.
